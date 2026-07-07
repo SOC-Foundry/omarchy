@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+*~
+*.swp
+
+# Syncthing conflict artifacts (should not re-enter pool)
+*.sync-conflict-*
+
+# Local backups from changelog procedures
+*.bak.*
+*.bak
