@@ -854,6 +854,8 @@ Always back up `~/.config/fish/` before plugin changes. `chsh` requires interact
 
 Configured Alacritty to run a system summary on every new terminal window, then drop into the normal interactive fish + Tide session. Commands run once at launch; SSH, tmux attach, and `fish` subshells are unaffected.
 
+**Amended 2026-07-08 (CHG-007):** startup chain now `cd`s into `/data/Development/Projects` before `exec fish -l` so new terminals land in the XFS Projects tree (CHG-004).
+
 #### Business justification
 
 Provides an at-a-glance health check (kernel, network, block devices, hardware/software summary via fastfetch) each time a terminal opens — useful during the Omarchy transition for confirming environment state without typing the commands manually.
@@ -1276,6 +1278,134 @@ cp -a ~/Projects.chg004.bak ~/Development/Projects
 ```
 Backup Projects  →  install xfsprogs  →  shrink btrfs/LUKS/p2  →  create LUKS+XFS p3  →  crypttab/fstab  →  limine-mkinitcpio  →  migrate + symlink  →  reboot verify  →  cleanup .bak
 ```
+
+---
+
+### 2026-07-08 — CHG-006: Tide pwd segment text color (readability)
+
+| Field | Value |
+|-------|-------|
+| **Change ID** | `CHG-006` |
+| **Date** | 2026-07-08 |
+| **Status** | Applied |
+| **Risk** | Low |
+| **Downtime** | None (new fish sessions or `tide reload`) |
+| **Affected file** | `~/.config/fish/fish_variables` |
+| **Related config** | CHG-002 (Fisher + Tide Rainbow prompt) |
+
+#### Summary
+
+The Tide **pwd** (current directory) segment uses a blue background (`tide_pwd_bg_color: blue`). Stock Rainbow 16-color settings used bright white text (`brwhite` / `white`), which was hard to read on that blue block. Text colors were changed to **black** for anchors, directory names, and truncated path segments.
+
+#### Pre-change baseline (revert target)
+
+| Variable | Value |
+|----------|-------|
+| `tide_pwd_color_anchors` | `brwhite` |
+| `tide_pwd_color_dirs` | `brwhite` |
+| `tide_pwd_color_truncated_dirs` | `white` |
+
+#### Post-change state
+
+| Variable | Value |
+|----------|-------|
+| `tide_pwd_color_anchors` | `black` |
+| `tide_pwd_color_dirs` | `black` |
+| `tide_pwd_color_truncated_dirs` | `black` |
+
+`tide_pwd_bg_color` remains `blue` (unchanged).
+
+#### Implementation procedure
+
+```bash
+fish -c 'set -U tide_pwd_color_anchors black; set -U tide_pwd_color_dirs black; set -U tide_pwd_color_truncated_dirs black'
+```
+
+Reload in an existing session: `tide reload`. Or open a new terminal.
+
+#### Verification checklist
+
+- [x] `fish -c 'set -U | grep tide_pwd_color'` shows all three variables set to `black`
+- [x] New Alacritty window shows black path text on the blue pwd segment
+
+#### Rollback
+
+Restore stock Rainbow 16-color pwd text:
+
+```bash
+fish -c 'set -U tide_pwd_color_anchors brwhite; set -U tide_pwd_color_dirs brwhite; set -U tide_pwd_color_truncated_dirs white'
+```
+
+#### Notes
+
+- `purple` was tried first as a darker alternative to white; contrast was still insufficient — **black** confirmed readable.
+- Not affected: other Tide segments (git, os, time, etc.), bash/Starship, Hyprland.
+
+---
+
+### 2026-07-08 — CHG-007: Alacritty startup cwd → `/data/Development/Projects`
+
+| Field | Value |
+|-------|-------|
+| **Change ID** | `CHG-007` |
+| **Date** | 2026-07-08 |
+| **Status** | Applied |
+| **Risk** | Low |
+| **Downtime** | None (new Alacritty windows only) |
+| **Affected file** | `~/.config/alacritty/alacritty.toml` |
+| **Related config** | CHG-003 (startup chain), CHG-004 (`/data` Projects mount) |
+
+#### Summary
+
+After the CHG-004 migration, Projects live at `/data/Development/Projects` (symlinked from `~/Development/Projects`). New Alacritty windows still opened in `$HOME`. Appended `cd /data/Development/Projects` to the existing CHG-003 startup command chain, immediately before `exec fish -l`.
+
+#### Pre-change baseline (revert target)
+
+```toml
+shell = { program = "/usr/bin/fish", args = ["-l", "-c", "uname -a && ip -4 -br addr && echo $0 && lsblk -f && fastfetch; exec fish -l"] }
+```
+
+**Behavior:** Startup summary runs, then interactive fish opens in `$HOME` (`/home/kthompson`).
+
+#### Post-change state
+
+```toml
+shell = { program = "/usr/bin/fish", args = ["-l", "-c", "uname -a && ip -4 -br addr && echo $0 && lsblk -f && fastfetch; cd /data/Development/Projects; exec fish -l"] }
+```
+
+**Startup command sequence** (CHG-003 commands, then):
+
+| # | Command | Purpose |
+|---|---------|---------|
+| 7 | `cd /data/Development/Projects` | Land in XFS Projects tree |
+| 8 | `exec fish -l` | Interactive fish + Tide |
+
+#### Implementation procedure
+
+Edit `~/.config/alacritty/alacritty.toml` — add `cd /data/Development/Projects;` before `exec fish -l` in the `shell` args string (see post-change state above).
+
+**Test without GUI:**
+
+```bash
+fish -l -c 'uname -a >/dev/null; cd /data/Development/Projects; exec fish -l -c "pwd -P"'
+# expect: /data/Development/Projects
+```
+
+#### Verification checklist
+
+- [x] `grep cd /data ~/.config/alacritty/alacritty.toml` shows the `cd` in the startup chain
+- [x] New Alacritty window Tide prompt shows cwd under `/data/Development/Projects`
+- [ ] `fish` or SSH sessions opened outside Alacritty still start in `$HOME` (unchanged — by design)
+
+#### Rollback
+
+Remove `cd /data/Development/Projects;` from the `shell` args string (restore CHG-003-only chain).
+
+#### Notes
+
+- **Rejected approach:** `cd` in `~/.config/fish/config.fish` via `status is-interactive` / `status is-login` — fish has not marked the session interactive yet while `config.fish` loads, so the `cd` did not run reliably. Appending to the Alacritty startup chain is simpler and only affects Super+Return terminals.
+- **Canonical Projects path:** `/data/Development/Projects/` (real files on XFS). `~/Development/Projects` remains a symlink for tooling compatibility.
+- **CHG-004 cleanup pending:** `~/Projects.chg004.bak` and `~/Development/Projects.bak.chg004` (~90 GiB btrfs copies) can be deleted once confident — see CHG-004 step 6.
 
 ---
 
