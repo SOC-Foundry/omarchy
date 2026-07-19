@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# CHG-007 — react to PipeWire device/stream changes and re-apply precedence.
+set -euo pipefail
+
+FOLLOW="${HOME}/.local/bin/audio-precedence-follow"
+if [[ ! -x "$FOLLOW" ]]; then
+  FOLLOW="$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")/audio-precedence-follow"
+fi
+
+# Initial apply
+"$FOLLOW" || true
+
+# Debounce helper
+last=0
+apply() {
+  local now
+  now=$(date +%s)
+  if (( now - last < 1 )); then
+    return
+  fi
+  last=$now
+  "$FOLLOW" || true
+}
+
+# pactl subscribe emits: Event 'change' on sink #N  etc.
+pactl subscribe 2>/dev/null | while read -r _line; do
+  case "$_line" in
+    *sink*|*source*|*server*|*card*)
+      apply
+      ;;
+  esac
+done

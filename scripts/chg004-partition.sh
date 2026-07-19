@@ -1,80 +1,109 @@
 #!/usr/bin/env bash
-# CHG-004: Shrink nvme0n1p2 (LUKS+btrfs OS) to 350 GiB, create nvme0n1p3 (LUKS+XFS /data)
-# Layout A: p2 ~350 GiB OS | p3 ~580 GiB data
+# CHG-004 (83te / kt83teCos variant): shrink LUKS+btrfs OS, create LUKS+XFS /data
 #
-# REQUIRES: root (sudo). Prefer running from Omarchy/Ventoy live ISO if live shrink fails.
-# PRE-FLIGHT: ~/Projects.chg004.bak must exist (45G backup on btrfs).
-
+# Layout for this laptop (smaller drive than p3oos):
+#   p1  vfat   2 GiB     /boot
+#   p2  LUKS   200 GiB   btrfs OS  (filesystem target 185G)
+#   p3  LUKS   remainder XFS /data
+#
+# Run as root from a live Omarchy session. Interactive LUKS passphrase required.
+# Prerequisites: xfsprogs, parted, cryptsetup, btrfs-progs
 set -euo pipefail
 
 DISK=/dev/nvme0n1
-P2_PART=${DISK}p2
-P3_PART=${DISK}p3
-LUKS_OS_NAME=root
-LUKS_DATA_NAME=data
-MOUNT_OS=/mnt/chg004-os
-BTRFS_TARGET=330G
-P2_END_GIB=352GiB
-P3_START_GIB=352GiB
-# 330 GiB btrfs + ~64 MiB LUKS2 margin → sector count for cryptsetup resize
-LUKS_SECTORS=$((330 * 1024 * 1024 * 1024 / 512 + 131072))
+P2=${DISK}p2
+P3=${DISK}p3
+MAPPER_ROOT=root
+MAPPER_DATA=data
 
-log() { printf '\n[CHG-004] %s\n' "$*"; }
-die() { printf '\n[CHG-004] ERROR: %s\n' "$*" >&2; exit 1; }
+# Filesystem size inside the mapper (leave slack for LUKS header + safety margin)
+BTRFS_TARGET=185G
+# Partition end for p2 in GiB from start of disk (p1 ends at 2 GiB → p2 is 200 GiB)
+P2_END_GIB=202
+P3_START_GIB=202
 
-[[ $EUID -eq 0 ]] || die "Run with sudo: sudo bash $0"
+# LUKS payload size after shrink (512-byte sectors). Slightly larger than btrfs.
+# 190 GiB payload → leaves ~10 GiB slack inside the 200 GiB partition.
+LUKS_PAYLOAD_GIB=190
+LUKS_PAYLOAD_SECTORS=$((LUKS_PAYLOAD_GIB * 1024 * 1024 * 1024 / 512))
 
-[[ -d /home/kthompson/Projects.chg004.bak ]] || die "Missing ~/Projects.chg004.bak — abort."
+log() { printf '\n==> %s\n' "$*"; }
+die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-command -v mkfs.xfs >/dev/null || {
-  log "Installing xfsprogs (required for XFS)..."
+[[ $(id -u) -eq 0 ]] || die "run as root (sudo bash $0)"
+
+log "Preflight checks"
+[[ -b $DISK ]] || die "missing $DISK"
+[[ -b $P2 ]] || die "missing $P2"
+[[ ! -b $P3 ]] || die "$P3 already exists — aborting to avoid data loss"
+[[ -e /dev/mapper/$MAPPER_ROOT ]] || die "mapper $MAPPER_ROOT not open"
+mountpoint -q / || die "/ is not a mountpoint"
+findmnt -no FSTYPE / | grep -qx btrfs || die "/ is not btrfs"
+
+if ! command -v mkfs.xfs >/dev/null 2>&1; then
+  log "Installing xfsprogs"
   pacman -S --noconfirm xfsprogs
-}
+fi
 
-log "Current layout:"
-lsblk -f "$DISK"
-parted "$DISK" print free
+USED_GIB=$(btrfs filesystem usage -b / | awk '/Used:/ {print int($2/1024/1024/1024); exit}')
+log "btrfs used ≈ ${USED_GIB} GiB (must be well under ${BTRFS_TARGET})"
+if (( USED_GIB > 160 )); then
+  die "btrfs used (${USED_GIB}G) too close to target ${BTRFS_TARGET}; free space or raise target"
+fi
 
-read -r -p "Type YES to shrink $P2_PART and create $P3_PART: " confirm
-[[ $confirm == YES ]] || die "Aborted."
+log "Current layout"
+lsblk -f "$DISK" || true
+btrfs filesystem resize max / >/dev/null 2>&1 || true
+df -hT /
 
-log "Step 1/6: Shrink btrfs filesystem to $BTRFS_TARGET"
+log "Step 1/5: shrink btrfs on / to ${BTRFS_TARGET}"
 btrfs filesystem resize "$BTRFS_TARGET" /
+df -hT /
+btrfs filesystem show /
 
-log "Step 2/6: Shrink LUKS container $LUKS_OS_NAME to $LUKS_SECTORS sectors"
-cryptsetup resize --size "$LUKS_SECTORS" "$LUKS_OS_NAME"
+log "Step 2/5: shrink LUKS mapper '${MAPPER_ROOT}' payload to ${LUKS_PAYLOAD_GIB} GiB (${LUKS_PAYLOAD_SECTORS} sectors)"
+cryptsetup resize "$MAPPER_ROOT" --size "$LUKS_PAYLOAD_SECTORS"
+cryptsetup status "$MAPPER_ROOT"
 
-log "Step 3/6: Shrink partition $P2_PART end to $P2_END_GIB"
-parted ---pretend-input-tty "$DISK" resizepart 2 "$P2_END_GIB" <<< "Yes"
-partprobe "$DISK"
-sleep 2
+log "Step 3/5: shrink GPT partition 2 to end at ${P2_END_GIB} GiB"
+parted -s "$DISK" unit GiB print
+# resizepart end is inclusive end of partition in the unit used
+parted -s "$DISK" -- resizepart 2 "${P2_END_GIB}GiB"
+parted -s "$DISK" unit GiB print
+partprobe "$DISK" || true
+sleep 1
+[[ -b $P2 ]] || die "p2 vanished after resize"
 
-log "Step 4/6: Create partition 3 ($P3_START_GIB to 100%)"
-if ! parted "$DISK" print | grep -q '^ 3 '; then
-  parted ---pretend-input-tty "$DISK" mkpart primary "$P3_START_GIB" 100% <<< "Yes"
-  partprobe "$DISK"
-  sleep 2
-fi
+log "Step 4/5: create partition 3 from ${P3_START_GIB} GiB to 100%"
+parted -s "$DISK" -- mkpart primary "${P3_START_GIB}GiB" 100%
+partprobe "$DISK" || true
+sleep 1
+# Wait for udev
+udevadm settle || true
+for i in {1..20}; do
+  [[ -b $P3 ]] && break
+  sleep 0.5
+done
+[[ -b $P3 ]] || die "p3 not present after mkpart"
+parted -s "$DISK" unit GiB print
+lsblk -f "$DISK"
 
-[[ -b $P3_PART ]] || die "$P3_PART not found after mkpart"
+log "Step 5/5: LUKS-format p3 (USE THE SAME PASSPHRASE AS ROOT for single unlock prompt)"
+wipefs -a "$P3" || true
+cryptsetup luksFormat --type luks2 "$P3"
+cryptsetup open "$P3" "$MAPPER_DATA"
 
-log "Step 5/6: LUKS format + XFS on $P3_PART"
-if ! cryptsetup isLuks "$P3_PART" 2>/dev/null; then
-  log "Use the SAME passphrase as your existing root LUKS volume."
-  cryptsetup luksFormat --type luks2 "$P3_PART"
-fi
+log "Format XFS on /dev/mapper/${MAPPER_DATA}"
+mkfs.xfs -f -L data "/dev/mapper/${MAPPER_DATA}"
 
-cryptsetup open "$P3_PART" "$LUKS_DATA_NAME"
-mkfs.xfs -f -L data "/dev/mapper/$LUKS_DATA_NAME"
-cryptsetup close "$LUKS_DATA_NAME"
+log "Partition phase complete"
+lsblk -f "$DISK"
+cryptsetup status "$MAPPER_DATA" || true
+xfs_info "/dev/mapper/${MAPPER_DATA}" || true
 
-log "Step 6/6: Record UUIDs"
-P3_LUKS_UUID=$(cryptsetup luksUUID "$P3_PART")
-P2_LUKS_UUID=$(cryptsetup luksUUID "$P2_PART")
-printf '\n# Add to /etc/crypttab:\n'
-printf '%s UUID=%s none luks\n' "$LUKS_DATA_NAME" "$P3_LUKS_UUID"
-printf '\n# Add to /etc/fstab (after blkid for XFS UUID):\n'
-printf '/dev/mapper/%s /data xfs defaults,noatime 0 0\n' "$LUKS_DATA_NAME"
-printf '\nP2 LUKS UUID: %s\nP3 LUKS UUID: %s\n' "$P2_LUKS_UUID" "$P3_LUKS_UUID"
+cat <<EOF
 
-log "Partition work complete. Run: sudo bash scripts/chg004-postboot.sh"
+Next:
+  sudo bash $(dirname "$0")/chg004-postboot.sh
+
+EOF

@@ -1,11 +1,22 @@
-# OS / editor
+# Local / backup noise — keep the ledger clean
+*.bak
+*.bak.*
+README.md.bak.*
+**/*.bak.chg*
+**/*.pre-backout.*
+
+# Editor / OS
 .DS_Store
 *~
 *.swp
+.idea/
+.vscode/
+*.code-workspace
 
-# Syncthing conflict artifacts (should not re-enter pool)
-*.sync-conflict-*
-
-# Local backups from changelog procedures
-*.bak.*
-*.bak
+# Secrets / keys (never commit)
+*.pem
+*.key
+*credentials*
+.env
+.env.*
+!/*.example
