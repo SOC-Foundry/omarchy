@@ -55,7 +55,8 @@ omarchy debug --no-sudo --print
 | [V](#chapter-v--readable-paths) | 5 | CHG-005 | Readable paths (Tide pwd contrast) | Applied |
 | [VI](#chapter-vi--land-in-projects) | 6 | CHG-006 | Land in Projects (Alacritty cwd) | Applied |
 | [VII](#chapter-vii--sound-that-knows-its-place) | 7 | CHG-007 | Sound that knows its place (audio precedence + Rock EQ) | Applied |
-| [Roadmap](#roadmap) | 8+ | CHG-008+ | Syncthing mesh, keybindings, waybar, … | Planned |
+| [VIII](#chapter-viii--screenshots-on-data) | 8 | CHG-008 | Screenshots on data (XFS route + Keychron Q4 bind) | Applied |
+| [Roadmap](#roadmap) | 9+ | CHG-009+ | Syncthing mesh, keybindings, waybar, … | Planned |
 
 ---
 
@@ -453,12 +454,136 @@ bash scripts/chg007-backout.sh --soft
 
 ---
 
+# Chapter VIII — Screenshots on data
+
+**Session 8 · CHG-008 · 2026-07-29 · Applied · Host: 83te**
+
+### Synopsis
+
+Route Omarchy’s screenshot pipeline off the btrfs root and onto the wipe-surviving **XFS** volume from Session 4. Set `OMARCHY_SCREENSHOT_DIR` for both fish and Hyprland, and bind **Super+Shift+S** for region capture on a Keychron Q4 (no Print Screen key).
+
+### Why
+
+Stock capture writes under `XDG_PICTURES_DIR` (usually `~/Pictures`) on the OS volume. Screenshots are artifacts that should live with Projects on `/data` (`nvme0n1p3`), not on the LUKS+btrfs root that gets reinstalled or snapshotted away. A 60% board also cannot press the default Omarchy bind (bare `PRINT`).
+
+`omarchy-capture-screenshot` already prefers an explicit override:
+
+```bash
+OUTPUT_DIR="${OMARCHY_SCREENSHOT_DIR:-${XDG_PICTURES_DIR:-$HOME/Pictures}}"
+```
+
+### Storage target
+
+| Item | Value |
+|------|--------|
+| Partition | `nvme0n1p3` — LUKS → XFS → `/data` (Session 4) |
+| Directory | `/data/Development/Projects/socfoundry/ss/` |
+| Engine | `omarchy-capture-screenshot` (grim / slurp / satty) |
+| CLI | `omarchy screenshot` · `omarchy capture screenshot` |
+
+Early drafts also mentioned a stray `~/data` under the btrfs home tree (unrelated to the real `/data` mount). That path was inspected and removed if present; do not recreate it.
+
+### What changed
+
+| Layer | Change |
+|-------|--------|
+| Target dir | `mkdir` + `chown` on `/data/Development/Projects/socfoundry/ss` |
+| Fish | `set -gx OMARCHY_SCREENSHOT_DIR "…"` in `~/.config/fish/config.fish` |
+| Hyprland env | `env = OMARCHY_SCREENSHOT_DIR,/data/Development/Projects/socfoundry/ss` |
+| Keybind | `bind = SUPER SHIFT, S, exec, omarchy-capture-screenshot` |
+| Optional XDG | `~/Pictures/Screenshots` → symlink to the same `ss/` tree (fail-safe for non-Omarchy tools) |
+
+**Files (user space only)**
+
+```
+~/.config/fish/config.fish          # export OMARCHY_SCREENSHOT_DIR
+~/.config/hypr/hyprland.conf        # personal block: env + bind
+# preferred long-term homes (if you source them):
+#   ~/.config/hypr/envs.conf
+#   ~/.config/hypr/bindings.conf    # stock template already has the bind commented
+```
+
+### Procedure
+
+```bash
+# 1. Target on XFS /data
+sudo mkdir -p /data/Development/Projects/socfoundry/ss
+sudo chown -R "$USER:$USER" /data/Development/Projects/socfoundry/ss
+
+# 2. Optional XDG-style alias for other tools
+mkdir -p ~/Pictures
+rm -rf ~/Pictures/Screenshots
+ln -s /data/Development/Projects/socfoundry/ss ~/Pictures/Screenshots
+
+# 3. Fish — persistent export (use -x, not -a; -a appends duplicates)
+grep -q OMARCHY_SCREENSHOT_DIR ~/.config/fish/config.fish || \
+  echo 'set -gx OMARCHY_SCREENSHOT_DIR "/data/Development/Projects/socfoundry/ss"' >> ~/.config/fish/config.fish
+fish -c 'set -eU OMARCHY_SCREENSHOT_DIR; set -Ux OMARCHY_SCREENSHOT_DIR /data/Development/Projects/socfoundry/ss'
+
+# 4. Hyprland — personal block at bottom of hyprland.conf (after sourced files)
+#    env = OMARCHY_SCREENSHOT_DIR,/data/Development/Projects/socfoundry/ss
+#    bind = SUPER SHIFT, S, exec, omarchy-capture-screenshot
+# Stock PRINT binding remains in default utilities.conf for full-size boards.
+
+hyprctl reload && hyprctl configerrors
+```
+
+Stock Omarchy already documents the same Super+Shift+S line (commented) in `~/.config/hypr/bindings.conf`. Either uncomment there **or** keep the personal block — not both (duplicate binds).
+
+### Verify
+
+```bash
+echo $OMARCHY_SCREENSHOT_DIR
+# → /data/Development/Projects/socfoundry/ss
+
+omarchy-capture-screenshot
+# → /data/Development/Projects/socfoundry/ss/screenshot-YYYY-MM-DD_HH-MM-SS.png
+
+findmnt -T /data/Development/Projects/socfoundry/ss
+# → /data on the XFS LUKS volume (nvme0n1p3), not btrfs root
+```
+
+- [ ] CLI write lands under `socfoundry/ss/`
+- [ ] Super+Shift+S opens region select (slurp → grim → satty)
+- [ ] Bare Print still works if the keyboard has that key
+- [ ] `hyprctl configerrors` clean
+- [ ] Fish universal is a **single** path (no list of duplicates)
+
+Verified on 83te: captures such as `screenshot-2026-07-29_07-52-51.png` and `screenshot-2026-07-29_07-53-44.png` under the XFS path.
+
+### Backout
+
+```bash
+# Remove Hyprland env + SUPER SHIFT S lines from ~/.config/hypr/hyprland.conf
+# (or restore a pre-change backup), then:
+hyprctl reload
+
+# Fish
+# delete the set -gx line from config.fish
+fish -c 'set -eU OMARCHY_SCREENSHOT_DIR'
+
+# Optional symlink
+rm -f ~/Pictures/Screenshots
+
+# Files already on /data/…/ss are left alone; move or delete manually if desired
+```
+
+Capture then falls back to `XDG_PICTURES_DIR` / `~/Pictures`.
+
+### Notes
+
+- **Host:** Applied on **83te** (Yoga + Keychron Q4). Same path layout is valid on **p3oos** after Session 4; re-apply env/bind there if the desk board also lacks Print.
+- **Fish footgun:** `set -Ua VAR value` *appends*. A mistaken double-run left two identical universal elements. Prefer `set -Ux` (or clear with `set -eU` first). Global `set -gx` in `config.fish` is enough for interactive shells; Hyprland still needs its own `env =` so binds that never start fish still see the directory.
+- **Do not edit** `~/.local/share/omarchy/` — the capture binary already honors `OMARCHY_SCREENSHOT_DIR`.
+
+---
+
 ## Roadmap
 
 | Session | CHG | Topic | Status |
 |---------|-----|-------|--------|
-| 8 | CHG-008 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | Planned — see `socfoundry/syncthing` if present |
-| 9+ | CHG-009+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs; command cheat sheet | Ideas |
+| 9 | CHG-009 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | Planned — see `socfoundry/syncthing` if present |
+| 10+ | CHG-010+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs; command cheat sheet | Ideas |
 
 ---
 
@@ -498,8 +623,14 @@ pactl get-default-sink
 pactl get-default-source
 audio-eq status
 audio-precedence-follow --print
+
+# Screenshots (83te, Session 8)
+echo $OMARCHY_SCREENSHOT_DIR
+omarchy screenshot          # or: omarchy-capture-screenshot
+# Super+Shift+S — region capture (Keychron Q4 / no Print key)
+ls /data/Development/Projects/socfoundry/ss | tail
 ```
 
 ---
 
-*End of current edition. Last applied session: **7 (CHG-007)** — audio precedence on 83te, 2026-07-19.*
+*End of current edition. Last applied session: **8 (CHG-008)** — screenshot routing on 83te, 2026-07-29.*
