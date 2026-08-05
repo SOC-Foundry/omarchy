@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
-# CHG-007 apply — audio precedence + Rock EQ for Spotify/Chrome on 83te
+# CHG-007 / CHG-010 apply — audio precedence + Rock EQ for Spotify/Chrome on 83te
 #
-# Phase 1: sink/source precedence (P30i → Lenovo USB-C → built-in)
+# Phase 1: sink/source precedence
+#   P30i → Lenovo USB-C → AUX 3.5mm (Jack Out/In) → built-in speakers/dmic → camera last
 # Phase 2: Rock EQ always-on for Spotify + Google Chrome; mic order for calls
 # Network DSCP EF: already on LAN — intentionally NOT installed here
 #
+# CHG-010: correct sof pro-audio map (pro-0/1 = AUX, pro-2/10 = speakers/dmic)
+# and insert AUX between USB-C and built-in. Re-run this script after pulling.
+#
 # Run as the desktop user (NOT root):
-#   bash ~/Development/Projects/socfoundry/omarchy/scripts/chg007-apply.sh
+#   bash scripts/chg010-apply.sh          # preferred (Session 10 / CHG-010)
+#   bash scripts/chg007-apply.sh          # same install path; bak tag chg007
+#
+# Optional: CHG_TAG=chg010 bash scripts/chg007-apply.sh
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -16,6 +23,9 @@ if [[ $(id -u) -eq 0 ]]; then
   echo "  bash $0"
   exit 1
 fi
+
+# Backup / messaging stamp — chg010 when invoked for Session 10
+CHG_TAG="${CHG_TAG:-chg007}"
 
 HOME_DIR="${HOME}"
 CFG="${XDG_CONFIG_HOME:-$HOME_DIR/.config}"
@@ -30,7 +40,7 @@ command -v pactl >/dev/null || die "pactl missing (pipewire-pulse)"
 command -v wpctl >/dev/null || die "wpctl missing (wireplumber)"
 command -v systemctl >/dev/null || die "systemctl missing"
 
-log "Backing up current configs"
+log "Backing up current configs (tag=${CHG_TAG})"
 TS=$(date +%Y%m%d-%H%M%S)
 for d in \
   "$CFG/wireplumber/wireplumber.conf.d" \
@@ -38,7 +48,7 @@ for d in \
   "$CFG/pipewire/filter-chain.conf.d"
 do
   if [[ -d "$d" ]]; then
-    bak="${d}.bak.chg007.${TS}"
+    bak="${d}.bak.${CHG_TAG}.${TS}"
     cp -a "$d" "$bak"
     echo "  backed up $d → $bak"
   fi
@@ -83,7 +93,7 @@ log "Clearing sticky WirePlumber profile that forced built-in Off"
 # WP stores Active Profile: off for sof_sdw — remove so device.profile can apply
 PROF="$STATE/wireplumber/default-profile"
 if [[ -f "$PROF" ]]; then
-  cp -a "$PROF" "${PROF}.bak.chg007.${TS}"
+  cp -a "$PROF" "${PROF}.bak.${CHG_TAG}.${TS}"
   # Drop the sof_sdw off pin; keep other keys
   if command -v python3 >/dev/null; then
     python3 - <<'PY' "$PROF"
@@ -140,7 +150,7 @@ systemctl --user is-active filter-chain.service audio-precedence-watch.service w
 
 cat <<EOF
 
-CHG-007 apply complete.
+${CHG_TAG} apply complete (audio stack).
 
 Verify:
   fish $REPO/scripts/chg007-verify.fish
@@ -148,9 +158,14 @@ Verify:
 Manual checks:
   1. Spotify → should play through EQ Rock → P30i (if connected)
   2. Unpair/disconnect P30i → output falls to Lenovo USB-C
-  3. Unplug Lenovo → output falls to Built-in Speakers
-  4. Mic: default source follows P30i HFP (if active) → Lenovo → built-in dmic
-  5. Meet/Zoom/Teams in Google Chrome use best mic; network EF is unchanged
+  3. Unplug Lenovo (AUX still plugged) → output falls to AUX 3.5mm (pro-output-0)
+  4. Unplug AUX → output falls to Built-in Speakers (pro-output-2)
+  5. Mic: P30i HFP → Lenovo → AUX Jack In → dmic → camera last
+  6. Meet/Zoom/Teams in Google Chrome use best mic; network EF is unchanged
 
 EQ cycle hotkey still works: SUPER+CTRL+E (audio-eq cycle)
+
+sof map reminder (wpctl status / cat /proc/asound/card*/pcm*/info):
+  pro-output-0 / pro-input-1  = AUX Jack Out / Jack In
+  pro-output-2 / pro-input-10 = Built-in Speaker / DMIC
 EOF

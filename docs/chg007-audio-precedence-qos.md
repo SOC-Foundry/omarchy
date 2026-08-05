@@ -1,8 +1,12 @@
 # CHG-007 — Audio precedence + Rock EQ (83te)
 
+**Session:** 7 · **Home chapter:** [VII](../README.md#chapter-vii--sound-that-knows-its-place)  
+**CHG log:** [chronological ledger](../README.md#chg-log)  
 **Host:** `83te` — Lenovo Yoga 7 2-in-1 16IPH11 (Omarchy / Arch, PipeWire + WirePlumber)  
 **Date:** 2026-07-19  
 **Status:** Applied  
+**Later (same chapter):** [CHG-010](chg010-aux-desk-headset.md) inserts desk AUX and corrects the sof pro-audio map.
+
 **Network note:** Meet / Zoom / Teams already marked **EF (DSCP 46)** on the LAN. This change does **not** install host nftables/CAKE.
 
 ---
@@ -23,14 +27,16 @@
 
 ---
 
-## Device order
+## Device order (Session 7 as applied)
 
 | Priority | Output (sink) | Input (source) |
 |----------|---------------|----------------|
 | 1 | soundcore P30i (BT A2DP) | soundcore P30i mic (HFP only; A2DP has no capture) |
 | 2 | Lenovo USB-C Wired In-Ear | Lenovo USB-C mic |
-| 3 | Built-in speakers (`pro-output-0`) | Built-in dmic (`pro-input-1`) |
+| 3 | Built-in speakers | Built-in dmic |
 | last | — | USB camera mic |
+
+> **Current desk order:** see [CHG-010](chg010-aux-desk-headset.md) — P30i → Lenovo → **AUX** → built-in → camera.
 
 ### App audio
 
@@ -49,6 +55,7 @@
 omarchy/
 ├── README.md
 ├── docs/chg007-audio-precedence-qos.md   # this file
+├── docs/chg010-aux-desk-headset.md       # Session 10 extension
 ├── bin/
 │   ├── audio-precedence-follow
 │   └── audio-precedence-watch
@@ -61,16 +68,22 @@ omarchy/
 │       ├── 52-stream-music-eq.conf
 │       └── bluetooth-a2dp-autoconnect.conf
 └── scripts/
-    ├── chg007-apply.sh
-    ├── chg007-verify.fish
-    └── chg007-backout.sh
+    ├── chg007-apply.sh / chg007-verify.fish / chg007-backout.sh
+    └── chg010-apply.sh / chg010-verify.fish   # Session 10 entry points
 ```
 
 ---
 
 ## Apply
 
-Run as the **desktop user** (not root):
+Prefer **CHG-010** entry points when installing the current (post-AUX) tree:
+
+```fish
+bash ~/Development/Projects/socfoundry/omarchy/scripts/chg010-apply.sh
+fish ~/Development/Projects/socfoundry/omarchy/scripts/chg010-verify.fish
+```
+
+Historical Session 7 installer (same files; backup tag `chg007`):
 
 ```fish
 bash ~/Development/Projects/socfoundry/omarchy/scripts/chg007-apply.sh
@@ -79,7 +92,7 @@ fish ~/Development/Projects/socfoundry/omarchy/scripts/chg007-verify.fish
 
 What apply does:
 
-1. Backs up `~/.config/wireplumber/wireplumber.conf.d`, `~/.config/audio-eq`, and filter-chain drop-ins to `*.bak.chg007.<timestamp>`  
+1. Backs up `~/.config/wireplumber/wireplumber.conf.d`, `~/.config/audio-eq`, and filter-chain drop-ins to `*.bak.<tag>.<timestamp>`  
 2. Installs WirePlumber + EQ configs and helpers into `~/.local/bin`  
 3. Clears sticky `sof_sdw=off` profile state  
 4. Sets default configured sink to `effect_input.eq`  
@@ -95,10 +108,10 @@ Spotify / Chrome
        │
        ▼
  effect_output.eq  ──follow──► best hardware sink
-                               (P30i → Lenovo → built-in)
+                               (P30i → Lenovo → [AUX · CHG-010] → built-in)
 
 Meet/Zoom/Teams capture ──► best source
-                               (P30i HFP → Lenovo → dmic → camera)
+                               (P30i HFP → Lenovo → [AUX] → dmic → camera)
 ```
 
 `audio-precedence-watch` runs `pactl subscribe` and re-glues EQ output + default source when devices change.
@@ -114,7 +127,7 @@ Meet/Zoom/Teams capture ──► best source
 
 ## Backout / revert
 
-Prefer the automated script. It restores the newest `*.bak.chg007.*` trees created by apply when present.
+Prefer the automated script. It restores the newest `*.bak.chg010.*` / `*.bak.chg007.*` trees when present.
 
 ### Option A — Automated full backout (recommended)
 
@@ -126,106 +139,27 @@ This will:
 
 1. Disable and stop `audio-precedence-watch.service`  
 2. Stop and disable `filter-chain.service`; remove EQ drop-in link  
-3. Restore `~/.config/wireplumber/wireplumber.conf.d` from newest `*.bak.chg007.*` (or delete only CHG-007 files if no bak)  
+3. Restore `~/.config/wireplumber/wireplumber.conf.d` from newest bak (or delete only CHG files if no bak)  
 4. Restore `~/.config/audio-eq` and filter-chain conf.d from bak when available  
 5. Remove `~/.local/bin/audio-precedence-{follow,watch}`  
-6. Restore `~/.local/bin/audio-eq` from `audio-eq.bak.chg007` if that bak exists  
+6. Restore `~/.local/bin/audio-eq` from bak if present  
 7. Remove the user systemd unit and reload  
 8. Restore `default-profile` bak if present; clear `effect_input.eq` from default-nodes  
 9. Restart WirePlumber and set default sink/source to live hardware  
 
-Before overwriting live trees, backout copies the current CHG-007 state to `*.pre-backout.<timestamp>` so you can undo a bad revert.
+Before overwriting live trees, backout copies the current state to `*.pre-backout.<timestamp>`.
 
 ### Option B — Soft backout (EQ + watcher only)
-
-Keeps device-precedence WirePlumber rules; only removes always-on Rock EQ and the follower:
 
 ```fish
 bash ~/Development/Projects/socfoundry/omarchy/scripts/chg007-backout.sh --soft
 ```
 
-### Option C — Manual full backout
-
-Use if the script is unavailable. Still run as desktop user.
-
-```fish
-# 1) Stop services that re-apply policy
-systemctl --user disable --now audio-precedence-watch.service
-systemctl --user stop filter-chain.service
-systemctl --user disable filter-chain.service
-
-# 2) Remove EQ link
-rm -f ~/.config/pipewire/filter-chain.conf.d/10-audio-eq.conf
-
-# 3) Restore WirePlumber conf.d from apply backup (pick newest timestamp)
-#    Example — list first:
-ls -d ~/.config/wireplumber/wireplumber.conf.d.bak.chg007.*
-#    Then restore (replace TIMESTAMP):
-set TS TIMESTAMP
-mv ~/.config/wireplumber/wireplumber.conf.d ~/.config/wireplumber/wireplumber.conf.d.pre-backout
-cp -a ~/.config/wireplumber/wireplumber.conf.d.bak.chg007.$TS ~/.config/wireplumber/wireplumber.conf.d
-
-#    Or delete only CHG-007 files if you had no bak:
-# rm -f ~/.config/wireplumber/wireplumber.conf.d/50-device-precedence.conf
-# rm -f ~/.config/wireplumber/wireplumber.conf.d/52-stream-music-eq.conf
-
-# 4) Restore audio-eq tree if desired
-ls -d ~/.config/audio-eq.bak.chg007.*
-# mv ~/.config/audio-eq ~/.config/audio-eq.pre-backout
-# cp -a ~/.config/audio-eq.bak.chg007.$TS ~/.config/audio-eq
-
-# 5) Remove helpers + unit
-rm -f ~/.local/bin/audio-precedence-follow ~/.local/bin/audio-precedence-watch
-rm -f ~/.config/systemd/user/audio-precedence-watch.service
-rm -f ~/.config/systemd/user/default.target.wants/audio-precedence-watch.service
-systemctl --user daemon-reload
-
-# 6) Optional: restore pre-CHG-007 audio-eq binary
-# cp -a ~/.local/bin/audio-eq.bak.chg007 ~/.local/bin/audio-eq
-
-# 7) Optional: restore WP profile state that had sof_sdw=off
-# cp -a ~/.local/state/wireplumber/default-profile.bak.chg007.$TS \
-#       ~/.local/state/wireplumber/default-profile
-
-# 8) Clear EQ as configured default
-# Edit or truncate ~/.local/state/wireplumber/default-nodes so it no longer
-# sets default.configured.audio.sink=effect_input.eq
-
-# 9) Restart session audio
-systemctl --user restart wireplumber.service
-sleep 1
-pactl set-default-sink bluez_output.F4_B6_2D_75_CE_92.1   # if P30i connected
-# or: pactl set-default-sink <lenovo-or-builtin-sink-name>
-```
-
-### Backout verification
-
-```fish
-systemctl --user is-active audio-precedence-watch.service   # expect: inactive
-systemctl --user is-active filter-chain.service             # expect: inactive (full backout)
-test ! -e ~/.config/wireplumber/wireplumber.conf.d/50-device-precedence.conf; and echo "precedence gone"
-pactl get-default-sink                                      # expect: hardware, not effect_input.eq
-wpctl status
-# Play Spotify — should hit P30i (or Lenovo) without EQ Rock filter
-```
-
-### Backup locations created by apply
-
-| Path | Contents |
-|------|----------|
-| `~/.config/wireplumber/wireplumber.conf.d.bak.chg007.<TS>` | Pre-change WP drop-ins |
-| `~/.config/audio-eq.bak.chg007.<TS>` | Pre-change EQ presets/state |
-| `~/.config/pipewire/filter-chain.conf.d.bak.chg007.<TS>` | Pre-change filter-chain links |
-| `~/.local/state/wireplumber/default-profile.bak.chg007.<TS>` | Profile pins (incl. sof_sdw=off) |
-| `~/.local/bin/audio-eq.bak.chg007` | Pre-patch `audio-eq` binary |
-
-Backout writes `*.pre-backout.<TS>` next to paths it replaces.
-
 ### Re-apply after backout
 
 ```fish
-bash ~/Development/Projects/socfoundry/omarchy/scripts/chg007-apply.sh
-fish ~/Development/Projects/socfoundry/omarchy/scripts/chg007-verify.fish
+bash ~/Development/Projects/socfoundry/omarchy/scripts/chg010-apply.sh
+fish ~/Development/Projects/socfoundry/omarchy/scripts/chg010-verify.fish
 ```
 
 ---
@@ -233,7 +167,7 @@ fish ~/Development/Projects/socfoundry/omarchy/scripts/chg007-verify.fish
 ## Verify (post-apply)
 
 ```fish
-fish ~/Development/Projects/socfoundry/omarchy/scripts/chg007-verify.fish
+fish ~/Development/Projects/socfoundry/omarchy/scripts/chg010-verify.fish
 ~/.local/bin/audio-precedence-follow --print
 pw-link -l | rg 'eq|spotify|bluez'
 ```

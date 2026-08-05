@@ -10,21 +10,22 @@ This repository is not the Omarchy distribution. It is the **change ledger** and
 
 Omarchy is opinionated. That is its virtue and its trap. The stock install is beautiful and coherent — until the desk has three monitors in the wrong order, Projects need a wipe-surviving disk, or Bluetooth headphones lose a priority fight with a USB dongle.
 
-This book records every intentional deviation from stock **as a session**. Rules:
+This book records every intentional deviation from stock **as a session**. **Chapters** group work by topic; the **[CHG log](#chg-log)** lists every change ID in date order. Full rules live under that log.
 
 | Rule | Meaning |
 |------|---------|
-| **One session ↔ one CHG** | Session *N* is always `CHG-00N`. No gaps, no dual IDs. |
-| **Applied chronology** | Chapters follow the order work landed, not the order it was dreamed up. |
+| **One session ↔ one CHG** | Session *N* is always `CHG-00N`. No gaps. |
+| **Chapters = topics** | Later work on the same topic **appends** the chapter (see CHG-009 under I, CHG-010 under VII). |
+| **CHG log = chronology** | Date-ordered ledger, separate from chapter numbers. |
 | **User space only** | Customize `~/.config/` and this repo. Never edit `~/.local/share/omarchy/` (lost on `omarchy update`). |
-| **Reversible by default** | Every chapter ends with backout. Destructive disk work is labeled as such. |
+| **Reversible by default** | Every CHG ends with backout. Destructive disk work is labeled as such. |
 
 **Primary hosts**
 
 | Host | Role | Notes |
 |------|------|--------|
 | **p3oos** | Desk tower | Desk dock hosts; Crucial T705 ~1 TB (`nvme0n1`) |
-| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; docked triple-external desk (see CHG-001 / CHG-009); audio stack (P30i / Lenovo USB-C) |
+| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; docked triple-external desk (see CHG-001 / CHG-009); audio stack (P30i / Lenovo USB-C / AUX / built-in — CHG-007 / CHG-010) |
 
 **Safe config map**
 
@@ -46,18 +47,55 @@ omarchy debug --no-sudo --print
 
 ## Table of contents
 
-| Chapter | Session | CHG | Title | Status |
-|---------|---------|-----|-------|--------|
-| [I](#chapter-i--the-desk-in-order) | 1 | CHG-001 | The desk in order (triple monitors) | Applied |
-| [I · rev](#revision--chg-009--center-monitor-swap) | 9 | CHG-009 | Center monitor swap (Samsung → ViewSonic QHD primary @75 Hz) | Applied |
-| [II](#chapter-ii--a-prompt-worth-looking-at) | 2 | CHG-002 | A prompt worth looking at (fish + Tide) | Applied |
-| [III](#chapter-iii--the-terminal-speaks-first) | 3 | CHG-003 | The terminal speaks first (Alacritty startup) | Applied |
-| [IV](#chapter-iv--projects-on-their-own-disk) | 4 | CHG-004 | Projects on their own disk (LUKS + XFS `/data`) | Applied |
-| [V](#chapter-v--readable-paths) | 5 | CHG-005 | Readable paths (Tide pwd contrast) | Applied |
-| [VI](#chapter-vi--land-in-projects) | 6 | CHG-006 | Land in Projects (Alacritty cwd) | Applied |
-| [VII](#chapter-vii--sound-that-knows-its-place) | 7 | CHG-007 | Sound that knows its place (audio precedence + Rock EQ) | Applied |
-| [VIII](#chapter-viii--screenshots-on-data) | 8 | CHG-008 | Screenshots on data (XFS route + Keychron Q4 bind) | Applied |
-| [Roadmap](#roadmap) | 10+ | CHG-010+ | Syncthing mesh, keybindings, waybar, … | Planned |
+Chapters are **topic books** — a later CHG that extends a topic is appended inside that chapter (not a new chapter number). For a date-ordered list of every change ID, see the [CHG log](#chg-log).
+
+| Chapter | Title | Host focus | Primary CHG | Status |
+|---------|-------|------------|-------------|--------|
+| [I](#chapter-i--the-desk-in-order) | The desk in order (monitors) | p3oos · 83te | CHG-001 (+ [009](#chg-009--center-monitor-swap)) | Applied |
+| [II](#chapter-ii--a-prompt-worth-looking-at) | A prompt worth looking at (fish + Tide) | p3oos, 83te | CHG-002 | Applied |
+| [III](#chapter-iii--the-terminal-speaks-first) | The terminal speaks first (Alacritty startup) | both | CHG-003 | Applied |
+| [IV](#chapter-iv--projects-on-their-own-disk) | Projects on their own disk (LUKS + XFS `/data`) | p3oos, 83te | CHG-004 | Applied |
+| [V](#chapter-v--readable-paths) | Readable paths (Tide pwd contrast) | both | CHG-005 | Applied |
+| [VI](#chapter-vi--land-in-projects) | Land in Projects (Alacritty cwd) | both | CHG-006 | Applied |
+| [VII](#chapter-vii--sound-that-knows-its-place) | Sound that knows its place (audio) | 83te | CHG-007 (+ [010](#chg-010--aux-desk-headset-in-the-chain)) | Applied / 010 ready |
+| [VIII](#chapter-viii--screenshots-on-data) | Screenshots on data | 83te | CHG-008 | Applied |
+
+| Other | |
+|-------|--|
+| [CHG log](#chg-log) | Chronological change IDs (by date) |
+| [Roadmap](#roadmap) | Planned work not yet assigned or in flight |
+| [Appendix A](#appendix-a--conventions-for-the-next-chapter) | How to open the next session |
+| [Appendix B](#appendix-b--quick-reference) | Command cheat sheet |
+
+---
+
+## CHG log
+
+Every intentional deviation gets a **CHG-00N**. IDs are continuous (no gaps). This table is ordered by **date applied** (then CHG number). Narrative lives in the chapter linked under *Home*.
+
+| Date | CHG | Session | Title | Host | Status | Home |
+|------|-----|---------|-------|------|--------|------|
+| 2026-07-05 | CHG-001 | 1 | The desk in order (triple monitors) | p3oos | Applied | [Ch I](#chapter-i--the-desk-in-order) |
+| 2026-07-06 | CHG-002 | 2 | A prompt worth looking at (fish + Tide) | p3oos, 83te | Applied | [Ch II](#chapter-ii--a-prompt-worth-looking-at) |
+| 2026-07-06 | CHG-003 | 3 | The terminal speaks first (Alacritty startup) | — | Applied | [Ch III](#chapter-iii--the-terminal-speaks-first) |
+| 2026-07-06 / 07-09 | CHG-004 | 4 | Projects on their own disk (LUKS + XFS `/data`) | p3oos, 83te | Applied | [Ch IV](#chapter-iv--projects-on-their-own-disk) |
+| 2026-07-08 | CHG-005 | 5 | Readable paths (Tide pwd contrast) | — | Applied | [Ch V](#chapter-v--readable-paths) |
+| 2026-07-08 | CHG-006 | 6 | Land in Projects (Alacritty cwd) | — | Applied | [Ch VI](#chapter-vi--land-in-projects) |
+| 2026-07-19 | CHG-007 | 7 | Sound that knows its place (audio precedence + Rock EQ) | 83te | Applied | [Ch VII](#chapter-vii--sound-that-knows-its-place) |
+| 2026-07-29 | CHG-008 | 8 | Screenshots on data (XFS route + Keychron Q4 bind) | 83te | Applied | [Ch VIII](#chapter-viii--screenshots-on-data) |
+| 2026-08-05 | CHG-009 | 9 | Center monitor swap (Samsung → ViewSonic QHD @75 Hz) | 83te | Applied | [Ch I · CHG-009](#chg-009--center-monitor-swap) |
+| 2026-08-05 | CHG-010 | 10 | AUX desk headset in the chain | 83te | Ready to apply | [Ch VII · CHG-010](#chg-010--aux-desk-headset-in-the-chain) |
+
+**Rules**
+
+| Rule | Meaning |
+|------|---------|
+| **One session ↔ one CHG** | Session *N* is always `CHG-00N`. No gaps, no dual IDs. |
+| **Chapters are topics** | A CHG that extends an existing topic **appends that chapter**; it does not open Chapter IX, X, … |
+| **This log is chronological** | Sort by date (then CHG). Do not re-order chapters to match dates. |
+| **User space only** | Customize `~/.config/` and this repo. Never edit `~/.local/share/omarchy/`. |
+| **Reversible by default** | Every CHG ends with backout. Destructive disk work is labeled as such. |
+
 
 ---
 
@@ -137,15 +175,16 @@ Nuclear: `omarchy refresh hyprland` (resets *all* Hyprland user config).
 
 ### Notes
 
-Laptop (83te): monitors deferred — configure later with the same discovery workflow.
+- Laptop (**83te**): Session 1 deferred full multi-monitor on this host.
+- **p3oos** triple-1080p block above remains the historical baseline for this session.
 
 ---
 
-## Revision — CHG-009 · Center monitor swap
+## CHG-009 — Center monitor swap
 
 **Session 9 · CHG-009 · 2026-08-05 · Applied · Host: 83te (docked)**
 
-*Appended to Chapter I so the original triple-1080p layout stays readable as the baseline, and this section teaches how to swap a panel without rewriting history.*
+*Appended to Chapter I. CHG-001 above is the triple-1080p baseline; this is the current desk truth after the Samsung → ViewSonic center swap. See also the [CHG log](#chg-log).*
 
 ### Synopsis
 
@@ -272,7 +311,8 @@ To re-seat the old Samsung: put its `desc:` line back at `1920x0` with `1920x108
 ### Notes
 
 - Port numbers observed on 83te after the swap: Sceptre `DP-6`, ViewSonic `DP-5`, AOC `DP-4`. **Do not hard-code** — `desc:` survives re-dock.
-- CHG-001’s port-based triple-1080p block remains the historical baseline above; this revision is the current desk truth for docked 83te.
+- CHG-001’s port-based triple-1080p block above remains the historical baseline; this section is the current desk truth for docked 83te.
+- Formal change note: `docs/chg009-center-monitor-swap.md`.
 
 ---
 
@@ -517,7 +557,7 @@ Remove `cd /data/Development/Projects;` from the `shell` args (restore Session 3
 
 WirePlumber device precedence so audio fails over cleanly, plus always-on **Rock** EQ for Spotify and Google Chrome. Call capture walks the same device order. LAN already marks Meet/Zoom/Teams **EF (DSCP 46)** — no host nftables in this change.
 
-### Device order
+### Device order (as applied in Session 7)
 
 | Priority | Output | Input |
 |----------|--------|--------|
@@ -525,6 +565,8 @@ WirePlumber device precedence so audio fails over cleanly, plus always-on **Rock
 | 2 | Lenovo USB-C In-Ear | Lenovo USB-C mic |
 | 3 | Built-in speakers | Built-in dmic |
 | last | — | USB camera mic |
+
+> **Current desk order:** see [CHG-010](#chg-010--aux-desk-headset-in-the-chain) below (P30i → Lenovo → AUX → built-in → camera).
 
 ### App path
 
@@ -590,6 +632,138 @@ bash scripts/chg007-backout.sh --soft
 
 ---
 
+## CHG-010 — AUX desk headset in the chain
+
+**Session 10 · CHG-010 · 2026-08-05 · Ready to apply · Host: 83te**
+
+*Appended to Chapter VII. CHG-007 above is the original three-device precedence + Rock EQ baseline; this change inserts permanently-plugged desk AUX and corrects the sof pro-audio map. See also the [CHG log](#chg-log).*
+
+### Synopsis
+
+At the docked desk, **Lenovo USB-C** and a **3.5mm AUX headset** are both permanently plugged. USB-C must win when both are present; AUX must beat built-in speakers/mic; the USB camera stays last. CHG-010 also **corrects the sof pro-audio map**: what CHG-007 nicknamed “Built-in Speakers” (`pro-output-0`) is actually **Jack Out** (the AUX path).
+
+### Why another source is not “just another USB stick”
+
+| Device class | How PipeWire sees it | Precedence lever |
+|--------------|----------------------|------------------|
+| Bluetooth headset | `bluez_output.*` / `bluez_input.*` | High `priority.session` + follower pick |
+| USB headset | Own `alsa_card.usb-…` | Match `node.name` / `device.name` |
+| **Laptop 3.5mm AUX** | Same sof card as speakers (`sof_sdw`) — **separate pro PCMs** | Enable the right `pro-output-N` / `pro-input-N`, nick + priority |
+| Built-in speakers / dmic | Other PCMs on the **same** card | Lower priority; leave enabled as fallback |
+| USB camera | Separate USB capture device | Lowest priority; never prefer |
+
+On **83te** the codec line is `hs:rt721 spk:rt721+rt1320`. Under **pro-audio**:
+
+| ALSA PCM | WirePlumber node | Physical jack |
+|----------|------------------|---------------|
+| `pcm0p` Jack Out | `…pro-output-0` | **AUX / headphones** |
+| `pcm1c` Jack In | `…pro-input-1` | **AUX headset mic** |
+| `pcm2p` Speaker | `…pro-output-2` | Built-in speakers |
+| `pcm10c` DMIC Raw | `…pro-input-10` | Built-in array mic |
+
+`stereo-fallback` has nicer speaker/HP *ports* but **no capture sources**, so this host stays on pro-audio and ranks the PCMs explicitly.
+
+### Device order after CHG-010
+
+| Priority | Output | Input | `priority.session` |
+|----------|--------|--------|--------------------|
+| 1 | soundcore P30i (BT A2DP) | P30i mic (HFP only) | 2500 |
+| 2 | Lenovo USB-C In-Ear | Lenovo USB-C mic | 1500 |
+| 3 | **AUX 3.5mm** (`pro-output-0`) | **AUX mic** (`pro-input-1`) | 1000 |
+| 4 | Built-in speakers (`pro-output-2`) | Built-in dmic (`pro-input-10`) | 400 |
+| last | — | USB camera mic | 50 |
+
+Desk always-on: USB-C + AUX. Walking around: unplug AUX → follower skips Jack Out via `Headphone Jack` sense and falls to speakers.
+
+### How to add another audio I/O (checklist)
+
+Use this whenever you plug in a new headset, DAC, or dongle and want it in the chain:
+
+1. **Discover live nodes**
+   ```fish
+   wpctl status
+   pactl list short sinks
+   pactl list short sources
+   # For built-in / AUX on this Yoga:
+   cat /proc/asound/card*/pcm*/info | less
+   amixer -c sofsoundwire cget name='Headphone Jack'
+   ```
+2. **Classify the device**
+   - New **USB** → match `alsa_output.usb-…` / `alsa_input.usb-…` (and often set `device.profile`).
+   - New **BT** → `bluez_output.*` / `bluez_input.*` (MAC-specific rules optional).
+   - New **jack on the same sof card** → find which `pro-output-N` / `pro-input-N` is Jack vs Speaker vs DMIC; do **not** assume `pro-output-0` is speakers.
+3. **Pick a priority band** (leave gaps for future inserts)
+   - ~2500 preferred wireless  
+   - ~1500 primary wired desk  
+   - ~1000 secondary wired desk (AUX)  
+   - ~400 built-in last resort  
+   - ~50 camera / junk  
+4. **Edit repo config** `config/wireplumber/wireplumber.conf.d/50-device-precedence.conf`
+   - `update-props` with `priority.session` / `priority.driver` and a clear `node.nick`
+   - Disable only the pro nodes you truly never want (HDMI, deepbuffer)
+5. **Teach the follower** `bin/audio-precedence-follow` — WirePlumber priorities help defaults, but EQ glue and “skip when jack unplugged” live here. Insert a pick step in the same order as the table.
+6. **Apply + verify** (desktop user, not root)
+   ```fish
+   bash scripts/chg010-apply.sh
+   fish scripts/chg010-verify.fish
+   ~/.local/bin/audio-precedence-follow --print
+   ```
+7. **Failover smoke test**
+   - Disconnect P30i → expect Lenovo  
+   - Unplug Lenovo, keep AUX → expect AUX  
+   - Unplug AUX → expect built-in speakers / dmic  
+   - Camera must never win while anything better is up  
+
+### What changed (repo)
+
+| Path | Change |
+|------|--------|
+| `config/wireplumber/…/50-device-precedence.conf` | AUX @1000 on pro-0/1; speakers @400 on pro-2; dmic @400 on pro-10; stop disabling speaker/dmic PCMs |
+| `bin/audio-precedence-follow` | Pick order + jack sense (`Headphone Jack` / `Headset Mic Jack`) |
+| `scripts/chg010-apply.sh` | Installs updated WP drop-ins + follower (`*.bak.chg010.*`) |
+| `scripts/chg010-verify.fish` | Priority compares P30i > Lenovo > AUX > built-in; nick check on pro-0 |
+| `docs/chg010-aux-desk-headset.md` | This change’s formal note |
+| `docs/chg007-audio-precedence-qos.md` | Baseline stack (updated cross-links) |
+
+Re-run **`scripts/chg010-apply.sh`** after pull — it reinstalls the WirePlumber drop-in and helpers into `~/.config` / `~/.local/bin`.
+
+### Verify
+
+```fish
+bash scripts/chg010-apply.sh
+fish scripts/chg010-verify.fish
+~/.local/bin/audio-precedence-follow --print
+# expect aux_headphone_jack=on when 3.5mm is seated
+wpctl status   # AUX nick on pro-output-0; Built-in on pro-output-2
+```
+
+- [ ] Priorities: 2500 > 1500 > 1000 > 400 > 50  
+- [ ] `pro-output-0` nick contains **AUX** (not “Built-in Speakers”)  
+- [ ] With P30i + Lenovo + AUX all present: hardware sink is P30i (EQ still default)  
+- [ ] P30i off: hardware sink is Lenovo USB-C  
+- [ ] P30i + Lenovo off, AUX in: hardware sink is `…pro-output-0`  
+- [ ] Default source is never the USB camera when Lenovo/AUX/dmic exist  
+
+### Backout
+
+Prefer CHG-010 backups, then full CHG-007 stack backout if needed.
+
+```fish
+# Soft: stop EQ + watcher only
+bash scripts/chg007-backout.sh --soft
+
+# Full stack revert (restores newest *.bak.chg010.* / *.bak.chg007.* when present)
+bash scripts/chg007-backout.sh
+# Or re-apply git history of 50-device-precedence.conf from pre-CHG-010 and re-run apply
+```
+
+### Notes
+
+- **USB camera** on this host is capture-only (Sonix); there is no camera “speakers” sink in the chain.  
+- Speaker Switch / Headphone Switch under pro-audio may both show `on`; selection is by **which PCM** streams use, not by those mixers alone.  
+- Next free CHG after this: Syncthing mesh as **CHG-011** (see [Roadmap](#roadmap)).
+
+---
 # Chapter VIII — Screenshots on data
 
 **Session 8 · CHG-008 · 2026-07-29 · Applied · Host: 83te**
@@ -716,11 +890,12 @@ Capture then falls back to `XDG_PICTURES_DIR` / `~/Pictures`.
 
 ## Roadmap
 
-| Session | CHG | Topic | Status |
-|---------|-----|-------|--------|
-| 9 | CHG-009 | Center monitor swap (Samsung → ViewSonic QHD primary @75 Hz) — append to [Chapter I](#revision--chg-009--center-monitor-swap) | **Applied** |
-| 10 | CHG-010 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | Planned — see `socfoundry/syncthing` if present |
-| 11+ | CHG-011+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs; command cheat sheet | Ideas |
+Planned work not yet in the [CHG log](#chg-log). Assign the next free CHG when a session opens.
+
+| Tentative | Topic | Notes |
+|-----------|-------|--------|
+| CHG-011 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | See `socfoundry/syncthing` if present |
+| CHG-012+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs | Ideas |
 
 ---
 
@@ -728,11 +903,12 @@ Capture then falls back to `XDG_PICTURES_DIR` / `~/Pictures`.
 
 When you open Session *N*:
 
-1. Assign **CHG-00N** (next free integer; never skip).
-2. Write the chapter with: Synopsis · Why · What changed · Procedure · Verify · Backout.
-3. Put scripts under `scripts/chg00N-*` and durable config under `config/`.
-4. Link the chapter from the table of contents.
-5. Prefer backups named `*.bak.chg00N.<timestamp>`.
+1. Assign **CHG-00N** (next free integer; never skip). Add a row to the **[CHG log](#chg-log)** with date, host, status, and home chapter.
+2. If the work **extends an existing topic**, append a `## CHG-00N — …` section under that chapter. Do **not** invent Chapter IX/X only because the session number grew.
+3. If the work is a **new topic**, open the next chapter number (IX, X, …) and link it from the table of contents.
+4. Write: Synopsis · Why · What changed · Procedure · Verify · Backout.
+5. Put scripts under `scripts/chg00N-*` and durable config under `config/`; formal notes under `docs/chg00N-*.md` when useful.
+6. Prefer backups named `*.bak.chg00N.<timestamp>`.
 
 ---
 
@@ -754,12 +930,14 @@ lsblk -f
 df -hT / /data
 readlink -f ~/Development/Projects
 
-# Audio (83te, Session 7)
+# Audio (83te — Ch VII; CHG-007 / CHG-010)
 wpctl status
 pactl get-default-sink
 pactl get-default-source
 audio-eq status
 audio-precedence-follow --print
+# jack sense (AUX): amixer -c sofsoundwire cget name='Headphone Jack'
+# order: P30i → Lenovo USB-C → AUX → built-in → camera
 
 # Screenshots (83te, Session 8)
 echo $OMARCHY_SCREENSHOT_DIR
@@ -770,4 +948,4 @@ ls /data/Development/Projects/socfoundry/ss | tail
 
 ---
 
-*End of current edition. Last applied session: **8 (CHG-008)** — screenshot routing on 83te, 2026-07-29.*
+*End of current edition. Last applied CHG: **009** (ViewSonic center, Ch I, 2026-08-05). **CHG-010** (AUX audio, Ch VII) is staged — re-run `scripts/chg010-apply.sh` to land it. See [CHG log](#chg-log).*

@@ -41,7 +41,7 @@ ok()  { printf '  OK  %s\n' "$*"; }
 newest_bak() {
   # $1 = config path e.g. $CFG/wireplumber/wireplumber.conf.d
   local base="$1" hit="" stamp
-  for stamp in chg007 chg008 chg006 chg005; do
+  for stamp in chg010 chg007 chg008 chg006 chg005; do
     hit=$(ls -1d ${base}.bak.${stamp}.* 2>/dev/null | sort | tail -1 || true)
     [[ -n "$hit" ]] && break
   done
