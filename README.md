@@ -23,8 +23,8 @@ This book records every intentional deviation from stock **as a session**. Rules
 
 | Host | Role | Notes |
 |------|------|--------|
-| **p3oos** | Desk tower | Triple 1080p external monitors; Crucial T705 ~1 TB (`nvme0n1`) |
-| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; audio stack (P30i / Lenovo USB-C) |
+| **p3oos** | Desk tower | Desk dock hosts; Crucial T705 ~1 TB (`nvme0n1`) |
+| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; docked triple-external desk (see CHG-001 / CHG-009); audio stack (P30i / Lenovo USB-C) |
 
 **Safe config map**
 
@@ -49,6 +49,7 @@ omarchy debug --no-sudo --print
 | Chapter | Session | CHG | Title | Status |
 |---------|---------|-----|-------|--------|
 | [I](#chapter-i--the-desk-in-order) | 1 | CHG-001 | The desk in order (triple monitors) | Applied |
+| [I · rev](#revision--chg-009--center-monitor-swap) | 9 | CHG-009 | Center monitor swap (Samsung → ViewSonic QHD primary @75 Hz) | Applied |
 | [II](#chapter-ii--a-prompt-worth-looking-at) | 2 | CHG-002 | A prompt worth looking at (fish + Tide) | Applied |
 | [III](#chapter-iii--the-terminal-speaks-first) | 3 | CHG-003 | The terminal speaks first (Alacritty startup) | Applied |
 | [IV](#chapter-iv--projects-on-their-own-disk) | 4 | CHG-004 | Projects on their own disk (LUKS + XFS `/data`) | Applied |
@@ -56,7 +57,7 @@ omarchy debug --no-sudo --print
 | [VI](#chapter-vi--land-in-projects) | 6 | CHG-006 | Land in Projects (Alacritty cwd) | Applied |
 | [VII](#chapter-vii--sound-that-knows-its-place) | 7 | CHG-007 | Sound that knows its place (audio precedence + Rock EQ) | Applied |
 | [VIII](#chapter-viii--screenshots-on-data) | 8 | CHG-008 | Screenshots on data (XFS route + Keychron Q4 bind) | Applied |
-| [Roadmap](#roadmap) | 9+ | CHG-009+ | Syncthing mesh, keybindings, waybar, … | Planned |
+| [Roadmap](#roadmap) | 10+ | CHG-010+ | Syncthing mesh, keybindings, waybar, … | Planned |
 
 ---
 
@@ -137,6 +138,141 @@ Nuclear: `omarchy refresh hyprland` (resets *all* Hyprland user config).
 ### Notes
 
 Laptop (83te): monitors deferred — configure later with the same discovery workflow.
+
+---
+
+## Revision — CHG-009 · Center monitor swap
+
+**Session 9 · CHG-009 · 2026-08-05 · Applied · Host: 83te (docked)**
+
+*Appended to Chapter I so the original triple-1080p layout stays readable as the baseline, and this section teaches how to swap a panel without rewriting history.*
+
+### Synopsis
+
+Replaced the center **Samsung C27F390** (1080p) with a **ViewSonic VX3276-QHD** (32″ 2560×1440). Because the new panel is wider and taller, every X offset to its right had to be recomputed, the laptop seat under center was recentered, and the ViewSonic was promoted to **primary** at its max EDID refresh (~75 Hz).
+
+### Why a panel swap breaks the desk
+
+| Failure mode | What happens |
+|--------------|--------------|
+| Stale `desc:` / port match | New panel falls through to `monitor=,preferred,auto,1` and lands at the far right of the layout |
+| Same X offsets as before | Right-hand monitor still starts at `3840` even though center is now 2560 wide → gap or overlap in muscle memory |
+| Port hard-coding (`DP-3`) | Dock re-enumeration renames connectors; layout silently targets the wrong cable |
+| Ignoring scale / Hz | QHD at 1× is correct (~92 PPI on 32″); 60 Hz leaves free smoothness on the table when EDID offers ~75 Hz |
+
+### Hardware after swap
+
+| Desk position | Panel | Match key | Mode | Serial |
+|---------------|-------|-----------|------|--------|
+| Left | Sceptre F27 | `desc:Sceptre Tech Inc Sceptre F27` | 1920×1080@60 · scale 1 | `0x01010101` |
+| Center (primary) | ViewSonic VX3276-QHD | `desc:ViewSonic Corporation VX3276-QHD` | **2560×1440@74.93** · scale 1 | `YF02607A1509` |
+| Right | AOC 27E2UA | `desc:AOC 27E2UA` | 1920×1080@60 · scale 1 | `RLTRAHA010285` |
+| Below center | Laptop eDP-1 | `eDP-1` | 1920×1200@60 · scale 1.5 | — |
+
+*Retired center:* Samsung C27F390 · 1920×1080@60 · serial `HCNW207527` (was `desc:Samsung Electric Company C27F390` / earlier port `DP-3`).
+
+### How to swap a monitor (checklist)
+
+Use this whenever any desk panel is replaced:
+
+1. **Plug in and discover**
+   ```bash
+   hyprctl monitors
+   # note: name (DP-*), description (for desc:), availableModes (pick native res + highest comfortable Hz)
+   ```
+2. **Map physically** — move the cursor, run `omarchy hyprland monitor focused` on each panel so left/center/right match the room, not cable labels.
+3. **Backup**
+   ```bash
+   cp ~/.config/hypr/monitors.conf ~/.config/hypr/monitors.conf.bak.$(date +%Y%m%d-%H%M%S)
+   ```
+4. **Edit with `desc:` keys** (never rely on `DP-N` alone after a dock swap):
+   - X offset of a monitor = sum of **scaled** widths of everything to its left
+   - Y for a row under a taller center = height of the tallest top-row panel (here 1440)
+   - Laptop logical width at scale 1.5: `1920 / 1.5 = 1280` → center under middle with `x = middle_x + middle_w/2 - 1280/2`
+5. **Promote primary** (optional but recommended for the main work surface):
+   ```ini
+   workspace = 1, monitor:desc:ViewSonic Corporation VX3276-QHD, default:true
+   cursor {
+       default_monitor = desc:ViewSonic Corporation VX3276-QHD
+   }
+   ```
+6. **Reload and verify**
+   ```bash
+   hyprctl reload && hyprctl configerrors && hyprctl monitors
+   hyprctl workspacerules   # confirm workspace 1 → ViewSonic, default:true
+   ```
+
+### What changed (live config)
+
+**File:** `~/.config/hypr/monitors.conf`
+
+```ini
+env = GDK_SCALE,1
+
+# Top row — left → center → right  (widths 1920 + 2560 + 1920 → offsets 0, 1920, 4480)
+monitor = desc:Sceptre Tech Inc Sceptre F27, 1920x1080@60, 0x0, 1
+monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@74.93, 1920x0, 1
+monitor = desc:AOC 27E2UA, 1920x1080@60, 4480x0, 1
+
+# Laptop under ViewSonic: center x = 1920+1280 = 3200; laptop logical w = 1280 → x = 2560
+monitor = eDP-1, 1920x1200@60, 2560x1440, 1.5
+
+monitor = , preferred, auto, 1
+
+workspace = 1, monitor:desc:ViewSonic Corporation VX3276-QHD, default:true
+cursor {
+    default_monitor = desc:ViewSonic Corporation VX3276-QHD
+}
+```
+
+```
+┌─────────────┬──────────────────┬─────────────┐
+│  Sceptre    │  ViewSonic QHD   │  AOC        │
+│  1920×1080  │  2560×1440@75    │  1920×1080  │
+│  (0,0)      │  (1920,0) ★      │  (4480,0)   │
+└─────────────┴────────┬─────────┴─────────────┘
+                       │  eDP-1 (1.5×)         │
+                       │  logical 1280×800     │
+                       │  (2560,1440)          │
+                       └───────────────────────┘
+  ★ primary: workspace 1 default + cursor on login
+```
+
+### Optimization choices (ViewSonic as primary)
+
+| Knob | Choice | Rationale |
+|------|--------|-----------|
+| Resolution | Native `2560×1440` | Sharpest; no GPU scaler |
+| Refresh | **`@74.93`** (EDID max; “75 Hz” class) | Smoother pointer/scroll than 60; free if the link trains |
+| Scale | `1` | 32″ QHD ≈ 92 PPI — comfortable 1×; avoid fractional |
+| Bit depth | 8 (default) | `bitdepth,10` can break screenshot / capture pipelines |
+| VRR | off | Desktop-primary; Adaptive Sync left for a later gaming pass |
+| Color | sRGB default | Predictable for web/code; no HDR experiment on the daily driver |
+| Primary | workspace 1 + `cursor:default_monitor` | New windows / login land on the work surface |
+
+### Verify
+
+- [x] No config errors after `hyprctl reload`
+- [x] Positions `0x0`, `1920x0`, `4480x0`, laptop `2560x1440`
+- [x] ViewSonic refresh ≈ 74.93 Hz
+- [x] `hyprctl workspacerules` shows workspace 1 → ViewSonic `default:true`
+- [ ] Cursor crosses Sceptre → ViewSonic → AOC; down into laptop under center
+- [ ] GTK apps not double-scaled (`GDK_SCALE=1`)
+
+### Backout
+
+```bash
+# Prefer the pre-swap backup taken at the start of this session
+cp ~/.config/hypr/monitors.conf.bak.YYYYMMDD-HHMMSS ~/.config/hypr/monitors.conf
+hyprctl reload
+```
+
+To re-seat the old Samsung: put its `desc:` line back at `1920x0` with `1920x1080@60`, set AOC to `3840x0`, drop the workspace/cursor primary block (or point it at Samsung), and recompute the laptop `x` for a 1920-wide center.
+
+### Notes
+
+- Port numbers observed on 83te after the swap: Sceptre `DP-6`, ViewSonic `DP-5`, AOC `DP-4`. **Do not hard-code** — `desc:` survives re-dock.
+- CHG-001’s port-based triple-1080p block remains the historical baseline above; this revision is the current desk truth for docked 83te.
 
 ---
 
@@ -582,8 +718,9 @@ Capture then falls back to `XDG_PICTURES_DIR` / `~/Pictures`.
 
 | Session | CHG | Topic | Status |
 |---------|-----|-------|--------|
-| 9 | CHG-009 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | Planned — see `socfoundry/syncthing` if present |
-| 10+ | CHG-010+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs; command cheat sheet | Ideas |
+| 9 | CHG-009 | Center monitor swap (Samsung → ViewSonic QHD primary @75 Hz) — append to [Chapter I](#revision--chg-009--center-monitor-swap) | **Applied** |
+| 10 | CHG-010 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | Planned — see `socfoundry/syncthing` if present |
+| 11+ | CHG-011+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs; command cheat sheet | Ideas |
 
 ---
 
