@@ -15,7 +15,7 @@ This book records every intentional deviation from stock **as a session**. **Cha
 | Rule | Meaning |
 |------|---------|
 | **One session ↔ one CHG** | Session *N* is always `CHG-00N`. No gaps. |
-| **Chapters = topics** | Later work on the same topic **appends** the chapter (see CHG-009 under I, CHG-010 under VII). |
+| **Chapters = topics** | Later work on the same topic **appends** the chapter (see CHG-009 / CHG-011 under I, CHG-010 under VII). |
 | **CHG log = chronology** | Date-ordered ledger, separate from chapter numbers. |
 | **User space only** | Customize `~/.config/` and this repo. Never edit `~/.local/share/omarchy/` (lost on `omarchy update`). |
 | **Reversible by default** | Every CHG ends with backout. Destructive disk work is labeled as such. |
@@ -25,7 +25,7 @@ This book records every intentional deviation from stock **as a session**. **Cha
 | Host | Role | Notes |
 |------|------|--------|
 | **p3oos** | Desk tower | Desk dock hosts; Crucial T705 ~1 TB (`nvme0n1`) |
-| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; docked triple-external desk (see CHG-001 / CHG-009); audio stack (P30i / Lenovo USB-C / AUX / built-in — CHG-007 / CHG-010) |
+| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; docked triple-external desk (see CHG-001 / CHG-009 / CHG-011); audio stack (P30i / Lenovo USB-C / AUX / built-in — CHG-007 / CHG-010) |
 
 **Safe config map**
 
@@ -51,7 +51,7 @@ Chapters are **topic books** — a later CHG that extends a topic is appended in
 
 | Chapter | Title | Host focus | Primary CHG | Status |
 |---------|-------|------------|-------------|--------|
-| [I](#chapter-i--the-desk-in-order) | The desk in order (monitors) | p3oos · 83te | CHG-001 (+ [009](#chg-009--center-monitor-swap)) | Applied |
+| [I](#chapter-i--the-desk-in-order) | The desk in order (monitors) | p3oos · 83te | CHG-001 (+ [009](#chg-009--center-monitor-swap) · [011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz)) | Applied |
 | [II](#chapter-ii--a-prompt-worth-looking-at) | A prompt worth looking at (fish + Tide) | p3oos, 83te | CHG-002 | Applied |
 | [III](#chapter-iii--the-terminal-speaks-first) | The terminal speaks first (Alacritty startup) | both | CHG-003 | Applied |
 | [IV](#chapter-iv--projects-on-their-own-disk) | Projects on their own disk (LUKS + XFS `/data`) | p3oos, 83te | CHG-004 | Applied |
@@ -83,8 +83,9 @@ Every intentional deviation gets a **CHG-00N**. IDs are continuous (no gaps). Th
 | 2026-07-08 | CHG-006 | 6 | Land in Projects (Alacritty cwd) | — | Applied | [Ch VI](#chapter-vi--land-in-projects) |
 | 2026-07-19 | CHG-007 | 7 | Sound that knows its place (audio precedence + Rock EQ) | 83te | Applied | [Ch VII](#chapter-vii--sound-that-knows-its-place) |
 | 2026-07-29 | CHG-008 | 8 | Screenshots on data (XFS route + Keychron Q4 bind) | 83te | Applied | [Ch VIII](#chapter-viii--screenshots-on-data) |
-| 2026-08-05 | CHG-009 | 9 | Center monitor swap (Samsung → ViewSonic QHD @75 Hz) | 83te | Applied | [Ch I · CHG-009](#chg-009--center-monitor-swap) |
+| 2026-08-05 | CHG-009 | 9 | Center monitor swap (Samsung → ViewSonic QHD; refresh later fixed by 011) | 83te | Applied | [Ch I · CHG-009](#chg-009--center-monitor-swap) |
 | 2026-08-05 | CHG-010 | 10 | AUX desk headset in the chain | 83te | Ready to apply | [Ch VII · CHG-010](#chg-010--aux-desk-headset-in-the-chain) |
+| 2026-08-05 | CHG-011 | 11 | ViewSonic QHD refresh: EDID 59.95 Hz (fix Out of Range) | 83te | Applied | [Ch I · CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz) |
 
 **Rules**
 
@@ -184,11 +185,11 @@ Nuclear: `omarchy refresh hyprland` (resets *all* Hyprland user config).
 
 **Session 9 · CHG-009 · 2026-08-05 · Applied · Host: 83te (docked)**
 
-*Appended to Chapter I. CHG-001 above is the triple-1080p baseline; this is the current desk truth after the Samsung → ViewSonic center swap. See also the [CHG log](#chg-log).*
+*Appended to Chapter I. CHG-001 above is the triple-1080p baseline; this session established the Samsung → ViewSonic layout and primary. **Refresh rate was corrected in [CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz)** (`@74.93` → `@59.95`). See also the [CHG log](#chg-log).*
 
 ### Synopsis
 
-Replaced the center **Samsung C27F390** (1080p) with a **ViewSonic VX3276-QHD** (32″ 2560×1440). Because the new panel is wider and taller, every X offset to its right had to be recomputed, the laptop seat under center was recentered, and the ViewSonic was promoted to **primary** at its max EDID refresh (~75 Hz).
+Replaced the center **Samsung C27F390** (1080p) with a **ViewSonic VX3276-QHD** (32″ 2560×1440). Because the new panel is wider and taller, every X offset to its right had to be recomputed, the laptop seat under center was recentered, and the ViewSonic was promoted to **primary**. (Session 9 also set refresh to `@74.93` based on marketing/assumed EDID max; that choice was wrong on this dock path — see CHG-011.)
 
 ### Why a panel swap breaks the desk
 
@@ -197,14 +198,14 @@ Replaced the center **Samsung C27F390** (1080p) with a **ViewSonic VX3276-QHD** 
 | Stale `desc:` / port match | New panel falls through to `monitor=,preferred,auto,1` and lands at the far right of the layout |
 | Same X offsets as before | Right-hand monitor still starts at `3840` even though center is now 2560 wide → gap or overlap in muscle memory |
 | Port hard-coding (`DP-3`) | Dock re-enumeration renames connectors; layout silently targets the wrong cable |
-| Ignoring scale / Hz | QHD at 1× is correct (~92 PPI on 32″); 60 Hz leaves free smoothness on the table when EDID offers ~75 Hz |
+| Ignoring scale / Hz | QHD at 1× is correct (~92 PPI on 32″). **Only use a refresh rate listed in `availableModes`** — marketing “75 Hz” is not enough (see CHG-011) |
 
 ### Hardware after swap
 
 | Desk position | Panel | Match key | Mode | Serial |
 |---------------|-------|-----------|------|--------|
 | Left | Sceptre F27 | `desc:Sceptre Tech Inc Sceptre F27` | 1920×1080@60 · scale 1 | `0x01010101` |
-| Center (primary) | ViewSonic VX3276-QHD | `desc:ViewSonic Corporation VX3276-QHD` | **2560×1440@74.93** · scale 1 | `YF02607A1509` |
+| Center (primary) | ViewSonic VX3276-QHD | `desc:ViewSonic Corporation VX3276-QHD` | **2560×1440@74.93** · scale 1 *(Session 9; **superseded → @59.95 in CHG-011**)* | `YF02607A1509` |
 | Right | AOC 27E2UA | `desc:AOC 27E2UA` | 1920×1080@60 · scale 1 | `RLTRAHA010285` |
 | Below center | Laptop eDP-1 | `eDP-1` | 1920×1200@60 · scale 1.5 | — |
 
@@ -217,7 +218,8 @@ Use this whenever any desk panel is replaced:
 1. **Plug in and discover**
    ```bash
    hyprctl monitors
-   # note: name (DP-*), description (for desc:), availableModes (pick native res + highest comfortable Hz)
+   # note: name (DP-*), description (for desc:), availableModes
+   # pick native res + highest Hz that actually appears in availableModes (not marketing)
    ```
 2. **Map physically** — move the cursor, run `omarchy hyprland monitor focused` on each panel so left/center/right match the room, not cable labels.
 3. **Backup**
@@ -282,7 +284,7 @@ cursor {
 | Knob | Choice | Rationale |
 |------|--------|-----------|
 | Resolution | Native `2560×1440` | Sharpest; no GPU scaler |
-| Refresh | **`@74.93`** (EDID max; “75 Hz” class) | Smoother pointer/scroll than 60; free if the link trains |
+| Refresh | **`@74.93`** *(Session 9 assumption; **wrong on this link**)* | Intended smoother pointer/scroll; EDID never listed 75 Hz — corrected in **CHG-011** to `@59.95` |
 | Scale | `1` | 32″ QHD ≈ 92 PPI — comfortable 1×; avoid fractional |
 | Bit depth | 8 (default) | `bitdepth,10` can break screenshot / capture pipelines |
 | VRR | off | Desktop-primary; Adaptive Sync left for a later gaming pass |
@@ -293,7 +295,7 @@ cursor {
 
 - [x] No config errors after `hyprctl reload`
 - [x] Positions `0x0`, `1920x0`, `4480x0`, laptop `2560x1440`
-- [x] ViewSonic refresh ≈ 74.93 Hz
+- [x] ViewSonic refresh ≈ 74.93 Hz *(Session 9 verify; later broken — see CHG-011)*
 - [x] `hyprctl workspacerules` shows workspace 1 → ViewSonic `default:true`
 - [ ] Cursor crosses Sceptre → ViewSonic → AOC; down into laptop under center
 - [ ] GTK apps not double-scaled (`GDK_SCALE=1`)
@@ -311,8 +313,98 @@ To re-seat the old Samsung: put its `desc:` line back at `1920x0` with `1920x108
 ### Notes
 
 - Port numbers observed on 83te after the swap: Sceptre `DP-6`, ViewSonic `DP-5`, AOC `DP-4`. **Do not hard-code** — `desc:` survives re-dock.
-- CHG-001’s port-based triple-1080p block above remains the historical baseline; this section is the current desk truth for docked 83te.
+- CHG-001’s port-based triple-1080p block above remains the historical baseline.
+- **Current live refresh** for the ViewSonic is documented under **[CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz)** — do not re-apply `@74.93` from the snippet above.
 - Formal change note: `docs/chg009-center-monitor-swap.md`.
+
+---
+
+## CHG-011 — ViewSonic QHD refresh: EDID 59.95 Hz
+
+**Session 11 · CHG-011 · 2026-08-05 · Applied · Host: 83te (docked)**
+
+*Appended to Chapter I. Corrects the refresh-rate choice from [CHG-009](#chg-009--center-monitor-swap) only; layout, primary, and offsets are unchanged. See also the [CHG log](#chg-log).*
+
+### Synopsis
+
+The center **ViewSonic VX3276-QHD** showed **Out of Range** after sleep/updates (flicker after sleep had already started *before* package updates — updates were not the root cause; **no package revert**). Live mode was **`2560×1440@74.93`**, but `hyprctl monitors` **availableModes** list only **`2560×1440@59.95Hz`** for native QHD on this dock/iGPU path. Config forced to the advertised mode.
+
+### Why “Out of Range”
+
+| Failure mode | What happens |
+|--------------|--------------|
+| Marketing Hz ≠ EDID | Panel sold as “75 Hz class”; EDID on this cable/dock only exposes QHD@~60 |
+| Force `@74.93` anyway | GPU sends timings outside the EDID list → OSD **Out of Range** |
+| Marginal mode + DPMS | After sleep, handshake often fails or flickers when the mode was never valid |
+| Blame package updates | Reboot after pacman/yay made the bad mode more visible; root cause was the mode line |
+
+### Hardware after fix (current desk truth)
+
+| Desk position | Panel | Match key | Mode | Serial |
+|---------------|-------|-----------|------|--------|
+| Left | Sceptre F27 | `desc:Sceptre Tech Inc Sceptre F27` | 1920×1080@60 · scale 1 | `0x01010101` |
+| Center (primary) | ViewSonic VX3276-QHD | `desc:ViewSonic Corporation VX3276-QHD` | **2560×1440@59.95** · scale 1 | `YF02607A1509` |
+| Right | AOC 27E2UA | `desc:AOC 27E2UA` | 1920×1080@60 · scale 1 | `RLTRAHA010285` |
+| Below center | Laptop eDP-1 | `eDP-1` | 1920×1200@60 · scale 1.5 | — |
+
+### What changed (live config)
+
+**File:** `~/.config/hypr/monitors.conf` — one mode token:
+
+```ini
+# CHG-009 (broken on this link)
+monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@74.93, 1920x0, 1
+
+# CHG-011 (matches EDID availableModes)
+monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@59.95, 1920x0, 1
+```
+
+```
+┌─────────────┬──────────────────┬─────────────┐
+│  Sceptre    │  ViewSonic QHD   │  AOC        │
+│  1920×1080  │  2560×1440@60    │  1920×1080  │
+│  (0,0)      │  (1920,0) ★      │  (4480,0)   │
+└─────────────┴────────┬─────────┴─────────────┘
+                       │  eDP-1 (1.5×)         │
+                       │  logical 1280×800     │
+                       │  (2560,1440)          │
+                       └───────────────────────┘
+  ★ primary: workspace 1 default + cursor on login
+```
+
+### Procedure
+
+1. Confirm EDID list: `hyprctl monitors` → ViewSonic `availableModes` (must include the mode you set).
+2. Backup: `cp ~/.config/hypr/monitors.conf ~/.config/hypr/monitors.conf.bak.chg011.$(date +%Y%m%d-%H%M%S)`
+3. Set `2560x1440@59.95` (or `@60` if Hyprland accepts the alias).
+4. `hyprctl reload && hyprctl configerrors && hyprctl monitors`
+
+### Verify
+
+- [x] No config errors after `hyprctl reload`
+- [x] ViewSonic live `2560x1440@59.95100` (matches EDID)
+- [x] Positions still `0x0`, `1920x0`, `4480x0`, laptop `2560x1440`
+- [ ] OSD no longer shows Out of Range
+- [ ] Suspend/resume: panel wakes cleanly without flicker
+
+### Backout
+
+```bash
+cp ~/.config/hypr/monitors.conf.bak.chg011.YYYYMMDD-HHMMSS ~/.config/hypr/monitors.conf
+hyprctl reload
+```
+
+Backout restores `@74.93` and will reintroduce Out of Range on the current dock path — only useful for A/B testing.
+
+### If you want true 75 Hz later
+
+Only when `availableModes` actually lists a ~75 Hz QHD mode. Until then, options are link-side (direct DP, fewer simultaneous high-res outputs, different dock port), not inventing `@74.93` in config. Four heads on Intel iGPU + MST often caps QHD at 60.
+
+### Notes
+
+- Pre-fix backup: `~/.config/hypr/monitors.conf.bak.chg011.20260805-150528` (also `…bak.20260805-150528`).
+- Formal change note: `docs/chg011-viewsonic-edid-refresh.md`.
+- CHG-009 remains the layout/primary source of truth; this session only corrects Hz.
 
 ---
 
@@ -761,7 +853,7 @@ bash scripts/chg007-backout.sh
 
 - **USB camera** on this host is capture-only (Sonix); there is no camera “speakers” sink in the chain.  
 - Speaker Switch / Headphone Switch under pro-audio may both show `on`; selection is by **which PCM** streams use, not by those mixers alone.  
-- Next free CHG after this: Syncthing mesh as **CHG-011** (see [Roadmap](#roadmap)).
+- Syncthing mesh is still on the [Roadmap](#roadmap) as **CHG-012** (Session 11 took CHG-011 for ViewSonic EDID refresh).
 
 ---
 # Chapter VIII — Screenshots on data
@@ -894,8 +986,8 @@ Planned work not yet in the [CHG log](#chg-log). Assign the next free CHG when a
 
 | Tentative | Topic | Notes |
 |-----------|-------|--------|
-| CHG-011 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | See `socfoundry/syncthing` if present |
-| CHG-012+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs | Ideas |
+| CHG-012 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | See `socfoundry/syncthing` if present; was roadmap-slotted as 011 before Session 11 took that ID |
+| CHG-013+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs | Ideas |
 
 ---
 
@@ -909,6 +1001,7 @@ When you open Session *N*:
 4. Write: Synopsis · Why · What changed · Procedure · Verify · Backout.
 5. Put scripts under `scripts/chg00N-*` and durable config under `config/`; formal notes under `docs/chg00N-*.md` when useful.
 6. Prefer backups named `*.bak.chg00N.<timestamp>`.
+7. **Standing order (agents / assistants):** for **every** issue the operator presents in this repo — fix, investigation, or applied config change — open the next CHG in the same session (or immediately after the fix lands). Do not wait to be asked for the ledger update. Update the CHG log, the home chapter section, `docs/chg00N-*.md`, TOC links, and the edition footer. Re-number roadmap “tentative” IDs if they collide with the new free integer.
 
 ---
 
@@ -948,4 +1041,4 @@ ls /data/Development/Projects/socfoundry/ss | tail
 
 ---
 
-*End of current edition. Last applied CHG: **009** (ViewSonic center, Ch I, 2026-08-05). **CHG-010** (AUX audio, Ch VII) is staged — re-run `scripts/chg010-apply.sh` to land it. See [CHG log](#chg-log).*
+*End of current edition. Last applied CHG: **011** (ViewSonic EDID refresh, Ch I, 2026-08-05). **CHG-010** (AUX audio, Ch VII) is staged — re-run `scripts/chg010-apply.sh` to land it. See [CHG log](#chg-log).*
