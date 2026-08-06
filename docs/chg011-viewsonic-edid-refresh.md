@@ -1,12 +1,8 @@
-# CHG-011 — ViewSonic QHD refresh: EDID 59.95 Hz (fix Out of Range)
+# CHG-011 — ViewSonic QHD refresh: EDID 59.95 Hz
 
-**Session:** 11 · **Home chapter:** [I · CHG-011](../README.md#chg-011--viewsonic-qhd-refresh-edid-5995-hz)  
-**CHG log:** [chronological ledger](../README.md#chg-log)  
-**Host:** `83te` (docked)  
-**Date:** 2026-08-05  
-**Status:** Applied  
-**Appends:** Chapter I (Session 1 / CHG-001; Session 9 / CHG-009 layout) — not a new chapter  
-**Supersedes:** CHG-009 refresh-rate choice only (`@74.93` → `@59.95`); layout / primary / offsets unchanged
+> `11` · **Applied** · 2026-08-05 ~15:05 · `83te` (docked)  
+> Home: [Ch I · 011](../README.md#chg-011--viewsonic-qhd-refresh-edid-5995-hz) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
+> Supersedes [CHG-009](chg009-center-monitor-swap.md) **Hz only** (`@74.93` → `@59.95`)
 
 ---
 

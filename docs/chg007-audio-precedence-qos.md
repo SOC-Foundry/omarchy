@@ -1,13 +1,11 @@
-# CHG-007 — Audio precedence + Rock EQ (83te)
+# CHG-007 — Audio precedence + Rock EQ
 
-**Session:** 7 · **Home chapter:** [VII](../README.md#chapter-vii--sound-that-knows-its-place)  
-**CHG log:** [chronological ledger](../README.md#chg-log)  
-**Host:** `83te` — Lenovo Yoga 7 2-in-1 16IPH11 (Omarchy / Arch, PipeWire + WirePlumber)  
-**Date:** 2026-07-19  
-**Status:** Applied  
-**Later (same chapter):** [CHG-010](chg010-aux-desk-headset.md) inserts desk AUX and corrects the sof pro-audio map.
+> `07` · **Applied** · 2026-07-19 · `83te`  
+> Home: [Ch V](../README.md#chapter-v--sound-that-knows-its-place) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
+> Later: [CHG-010](chg010-aux-desk-headset.md) (AUX + sof map fix)
 
-**Network note:** Meet / Zoom / Teams already marked **EF (DSCP 46)** on the LAN. This change does **not** install host nftables/CAKE.
+Host: Lenovo Yoga 7 2-in-1 16IPH11 · PipeWire + WirePlumber.  
+LAN already marks Meet/Zoom/Teams **EF (DSCP 46)** — no host nftables in this change.
 
 ---
 

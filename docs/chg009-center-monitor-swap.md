@@ -1,12 +1,8 @@
 # CHG-009 — Center monitor swap (Samsung → ViewSonic QHD)
 
-**Session:** 9 · **Home chapter:** [I · CHG-009](../README.md#chg-009--center-monitor-swap)  
-**CHG log:** [chronological ledger](../README.md#chg-log)  
-**Host:** `83te` (docked)  
-**Date:** 2026-08-05  
-**Status:** Applied  
-**Appends:** Chapter I (Session 1 / CHG-001 triple-1080p baseline) — not a new chapter  
-**Superseded (refresh only):** [CHG-011](chg011-viewsonic-edid-refresh.md) sets ViewSonic to `2560×1440@59.95` (EDID); layout/primary from this CHG remain
+> `09` · **Applied** · 2026-08-05 · `83te` (docked)  
+> Home: [Ch I · 009](../README.md#chg-009--center-monitor-swap) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
+> Appends Ch I · **Hz superseded by [CHG-011](chg011-viewsonic-edid-refresh.md)** (`@59.95`); layout/primary remain
 
 ---
 

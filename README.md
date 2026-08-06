@@ -1,40 +1,61 @@
-# Omarchy
+<div align="center">
 
-**A field manual for living on Omarchy** — Arch + Hyprland, after CachyOS.
+# omarchy
 
-This repository is not the Omarchy distribution. It is the **change ledger** and deploy kit for one operator’s machines: formal sessions, continuous change IDs, scripts that can be re-run or reversed, and enough context that a future self (or a peer) can understand *why* the system looks the way it does.
+**Field manual** · change ledger · deploy kit  
+Arch · Hyprland · after CachyOS
+
+[![ledger](https://img.shields.io/badge/ledger-CHG--011-a1a1aa?style=flat-square&labelColor=0a0a0a&color=171717)](#chg-register)
+[![status](https://img.shields.io/badge/edition-live-a1a1aa?style=flat-square&labelColor=0a0a0a&color=171717)](#table-of-contents)
+[![hosts](https://img.shields.io/badge/hosts-p3oos_%7C_83te-a1a1aa?style=flat-square&labelColor=0a0a0a&color=171717)](#hosts)
+[![scope](https://img.shields.io/badge/scope-user%20space-a1a1aa?style=flat-square&labelColor=0a0a0a&color=171717)](#conventions)
+
+<br />
+
+<sub>Not the Omarchy distribution — the operator ledger for one fleet.</sub>
+
+</div>
 
 ---
 
-## Prologue
+## Overview
 
-Omarchy is opinionated. That is its virtue and its trap. The stock install is beautiful and coherent — until the desk has three monitors in the wrong order, Projects need a wipe-surviving disk, or Bluetooth headphones lose a priority fight with a USB dongle.
+Omarchy is opinionated. That is the point — until the desk is wrong, Projects need a wipe-surviving disk, or Bluetooth loses to a USB dongle.
 
-This book records every intentional deviation from stock **as a session**. **Chapters** group work by topic; the **[CHG log](#chg-log)** lists every change ID in date order. Full rules live under that log.
+This repo records every intentional deviation from stock as a **session** (`CHG-00N`). **Chapters** are topic books; the **[log](#chg-log)** is chronology; the **[register](#chg-register)** is the detailed index. Scripts re-run and reverse. Future-you (or a peer) can answer *why* the machine looks like this.
+
+| | |
+|---|---|
+| **What this is** | Change ledger + deploy kit (`scripts/`, `config/`, `docs/`) |
+| **What this is not** | Upstream Omarchy · system packages under `/usr` · `~/.local/share/omarchy/` |
+| **Edit freely** | `~/.config/**` · this repository |
+| **Never edit** | `~/.local/share/omarchy/` — lost on `omarchy update` |
+
+### Conventions
 
 | Rule | Meaning |
 |------|---------|
-| **One session ↔ one CHG** | Session *N* is always `CHG-00N`. No gaps. |
-| **Chapters = topics** | Later work on the same topic **appends** the chapter (see CHG-009 / CHG-011 under I, CHG-010 under VII). |
-| **CHG log = chronology** | Date-ordered ledger, separate from chapter numbers. |
-| **User space only** | Customize `~/.config/` and this repo. Never edit `~/.local/share/omarchy/` (lost on `omarchy update`). |
-| **Reversible by default** | Every CHG ends with backout. Destructive disk work is labeled as such. |
+| One session ↔ one CHG | Session *N* is always `CHG-00N`. No gaps. |
+| Chapters = topics | Same topic **appends** the chapter (e.g. 009 · 011 under I). |
+| CHG log = chronology | Date order — independent of chapter Roman numerals. |
+| User space only | `~/.config/` + this repo. |
+| Reversible by default | Every CHG ends in **Backout**. Disk work is labeled **High** risk. |
 
-**Primary hosts**
+### Hosts
 
 | Host | Role | Notes |
 |------|------|--------|
-| **p3oos** | Desk tower | Desk dock hosts; Crucial T705 ~1 TB (`nvme0n1`) |
-| **83te** | Yoga 7 2-in-1 laptop | Sandisk SN5100S ~1 TB; docked triple-external desk (see CHG-001 / CHG-009 / CHG-011); audio stack (P30i / Lenovo USB-C / AUX / built-in — CHG-007 / CHG-010) |
+| **p3oos** | Desk tower | Crucial T705 ~1 TB · dock hosts |
+| **83te** | Yoga 7 2-in-1 | Sandisk SN5100S ~1 TB · docked multi-monitor desk · audio stack |
 
-**Safe config map**
+### Config map
 
-| Concern | Path |
+| Surface | Path |
 |---------|------|
 | Hyprland | `~/.config/hypr/` |
-| Terminal | `~/.config/alacritty/`, fish under `~/.config/fish/` |
-| Audio | `~/.config/wireplumber/`, `~/.config/audio-eq/`, `~/.config/pipewire/` |
-| This kit | `~/Development/Projects/socfoundry/omarchy/` → `/data/Development/Projects/socfoundry/omarchy/` |
+| Terminal | `~/.config/alacritty/` · `~/.config/fish/` |
+| Audio | `~/.config/wireplumber/` · `~/.config/audio-eq/` · `~/.config/pipewire/` |
+| This kit | `/data/Development/Projects/socfoundry/omarchy/` |
 
 ```bash
 omarchy commands
@@ -47,62 +68,48 @@ omarchy debug --no-sudo --print
 
 ## Table of contents
 
-Chapters are **topic books** — a later CHG that extends a topic is appended inside that chapter (not a new chapter number). For a date-ordered list of every change ID, see the [CHG log](#chg-log).
+| # | Chapter | Hosts | Primary | Status |
+|---|---------|-------|---------|--------|
+| [I](#chapter-i--the-desk-in-order) | The desk in order | p3oos · 83te | 001 · [009](#chg-009--center-monitor-swap) · [011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz) | Applied |
+| [II](#chapter-ii--a-prompt-worth-looking-at) | A prompt worth looking at | p3oos · 83te | 002 | Applied |
+| [III](#chapter-iii--the-terminal-speaks-first) | The terminal speaks first | both | 003 · [005](#chg-005--readable-paths) · [006](#chg-006--land-in-projects) | Applied |
+| [IV](#chapter-iv--projects-on-their-own-disk) | Projects on their own disk | p3oos · 83te | 004 · [006](#chg-006--land-in-projects--disk-home) | Applied |
+| [V](#chapter-v--sound-that-knows-its-place) | Sound that knows its place | 83te | 007 · [010](#chg-010--aux-desk-headset-in-the-chain) | Applied · 010 ready |
+| [VI](#chapter-vi--screenshots-on-data) | Screenshots on data | 83te | 008 | Applied |
 
-| Chapter | Title | Host focus | Primary CHG | Status |
-|---------|-------|------------|-------------|--------|
-| [I](#chapter-i--the-desk-in-order) | The desk in order (monitors) | p3oos · 83te | CHG-001 (+ [009](#chg-009--center-monitor-swap) · [011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz)) | Applied |
-| [II](#chapter-ii--a-prompt-worth-looking-at) | A prompt worth looking at (fish + Tide) | p3oos, 83te | CHG-002 | Applied |
-| [III](#chapter-iii--the-terminal-speaks-first) | The terminal speaks first (Alacritty startup) | both | CHG-003 | Applied |
-| [IV](#chapter-iv--projects-on-their-own-disk) | Projects on their own disk (LUKS + XFS `/data`) | p3oos, 83te | CHG-004 | Applied |
-| [V](#chapter-v--readable-paths) | Readable paths (Tide pwd contrast) | both | CHG-005 | Applied |
-| [VI](#chapter-vi--land-in-projects) | Land in Projects (Alacritty cwd) | both | CHG-006 | Applied |
-| [VII](#chapter-vii--sound-that-knows-its-place) | Sound that knows its place (audio) | 83te | CHG-007 (+ [010](#chg-010--aux-desk-headset-in-the-chain)) | Applied / 010 ready |
-| [VIII](#chapter-viii--screenshots-on-data) | Screenshots on data | 83te | CHG-008 | Applied |
-
-| Other | |
+| Index | |
 |-------|--|
-| [CHG log](#chg-log) | Chronological change IDs (by date) |
-| [Roadmap](#roadmap) | Planned work not yet assigned or in flight |
-| [Appendix A](#appendix-a--conventions-for-the-next-chapter) | How to open the next session |
-| [Appendix B](#appendix-b--quick-reference) | Command cheat sheet |
+| [CHG log](#chg-log) | Compact chronology |
+| [CHG register](#chg-register) | Timestamped detail (post-chapters) |
+| [Roadmap](#roadmap) | Next free IDs |
+| [Appendix A](#appendix-a--conventions-for-the-next-chapter) | Open a session |
+| [Appendix B](#appendix-b--quick-reference) | Command sheet |
 
 ---
 
 ## CHG log
 
-Every intentional deviation gets a **CHG-00N**. IDs are continuous (no gaps). This table is ordered by **date applied** (then CHG number). Narrative lives in the chapter linked under *Home*.
+Continuous IDs. Sorted by **applied date**, then number. Narrative lives under *Home*. Surfaces · risk · supersedes → **[register](#chg-register)**.
 
-| Date | CHG | Session | Title | Host | Status | Home |
-|------|-----|---------|-------|------|--------|------|
-| 2026-07-05 | CHG-001 | 1 | The desk in order (triple monitors) | p3oos | Applied | [Ch I](#chapter-i--the-desk-in-order) |
-| 2026-07-06 | CHG-002 | 2 | A prompt worth looking at (fish + Tide) | p3oos, 83te | Applied | [Ch II](#chapter-ii--a-prompt-worth-looking-at) |
-| 2026-07-06 | CHG-003 | 3 | The terminal speaks first (Alacritty startup) | — | Applied | [Ch III](#chapter-iii--the-terminal-speaks-first) |
-| 2026-07-06 / 07-09 | CHG-004 | 4 | Projects on their own disk (LUKS + XFS `/data`) | p3oos, 83te | Applied | [Ch IV](#chapter-iv--projects-on-their-own-disk) |
-| 2026-07-08 | CHG-005 | 5 | Readable paths (Tide pwd contrast) | — | Applied | [Ch V](#chapter-v--readable-paths) |
-| 2026-07-08 | CHG-006 | 6 | Land in Projects (Alacritty cwd) | — | Applied | [Ch VI](#chapter-vi--land-in-projects) |
-| 2026-07-19 | CHG-007 | 7 | Sound that knows its place (audio precedence + Rock EQ) | 83te | Applied | [Ch VII](#chapter-vii--sound-that-knows-its-place) |
-| 2026-07-29 | CHG-008 | 8 | Screenshots on data (XFS route + Keychron Q4 bind) | 83te | Applied | [Ch VIII](#chapter-viii--screenshots-on-data) |
-| 2026-08-05 | CHG-009 | 9 | Center monitor swap (Samsung → ViewSonic QHD; refresh later fixed by 011) | 83te | Applied | [Ch I · CHG-009](#chg-009--center-monitor-swap) |
-| 2026-08-05 | CHG-010 | 10 | AUX desk headset in the chain | 83te | Ready to apply | [Ch VII · CHG-010](#chg-010--aux-desk-headset-in-the-chain) |
-| 2026-08-05 | CHG-011 | 11 | ViewSonic QHD refresh: EDID 59.95 Hz (fix Out of Range) | 83te | Applied | [Ch I · CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz) |
-
-**Rules**
-
-| Rule | Meaning |
-|------|---------|
-| **One session ↔ one CHG** | Session *N* is always `CHG-00N`. No gaps, no dual IDs. |
-| **Chapters are topics** | A CHG that extends an existing topic **appends that chapter**; it does not open Chapter IX, X, … |
-| **This log is chronological** | Sort by date (then CHG). Do not re-order chapters to match dates. |
-| **User space only** | Customize `~/.config/` and this repo. Never edit `~/.local/share/omarchy/`. |
-| **Reversible by default** | Every CHG ends with backout. Destructive disk work is labeled as such. |
-
+| Date | CHG | S | Title | Host | Status | Home |
+|------|-----|---|-------|------|--------|------|
+| 2026-07-05 | 001 | 1 | The desk in order | p3oos | Applied | [I](#chapter-i--the-desk-in-order) |
+| 2026-07-06 | 002 | 2 | A prompt worth looking at | p3oos · 83te | Applied | [II](#chapter-ii--a-prompt-worth-looking-at) |
+| 2026-07-06 | 003 | 3 | The terminal speaks first | both | Applied | [III](#chapter-iii--the-terminal-speaks-first) |
+| 2026-07-06 · 07-09 | 004 | 4 | Projects on their own disk | p3oos · 83te | Applied | [IV](#chapter-iv--projects-on-their-own-disk) |
+| 2026-07-08 | 005 | 5 | Readable paths | both | Applied | [III · 005](#chg-005--readable-paths) |
+| 2026-07-08 | 006 | 6 | Land in Projects | both | Applied | [III](#chg-006--land-in-projects) · [IV](#chg-006--land-in-projects--disk-home) |
+| 2026-07-19 | 007 | 7 | Sound that knows its place | 83te | Applied | [V](#chapter-v--sound-that-knows-its-place) |
+| 2026-07-29 | 008 | 8 | Screenshots on data | 83te | Applied | [VI](#chapter-vi--screenshots-on-data) |
+| 2026-08-05 | 009 | 9 | Center monitor swap | 83te | Applied | [I · 009](#chg-009--center-monitor-swap) |
+| 2026-08-05 | 010 | 10 | AUX desk headset | 83te | Ready | [V · 010](#chg-010--aux-desk-headset-in-the-chain) |
+| 2026-08-05 | 011 | 11 | ViewSonic EDID refresh | 83te | Applied | [I · 011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz) |
 
 ---
 
 # Chapter I — The desk in order
 
-**Session 1 · CHG-001 · 2026-07-05 · Applied · Host: p3oos**
+> `01` · **CHG-001** · 2026-07-05 · **Applied** · `p3oos`
 
 ### Synopsis
 
@@ -183,9 +190,8 @@ Nuclear: `omarchy refresh hyprland` (resets *all* Hyprland user config).
 
 ## CHG-009 — Center monitor swap
 
-**Session 9 · CHG-009 · 2026-08-05 · Applied · Host: 83te (docked)**
-
-*Appended to Chapter I. CHG-001 above is the triple-1080p baseline; this session established the Samsung → ViewSonic layout and primary. **Refresh rate was corrected in [CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz)** (`@74.93` → `@59.95`). See also the [CHG log](#chg-log).*
+> `09` · **CHG-009** · 2026-08-05 · **Applied** · `83te` (docked)  
+> Appends Ch I. Layout + primary still current. **Hz corrected in [011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz)** (`@74.93` → `@59.95`).
 
 ### Synopsis
 
@@ -243,21 +249,19 @@ Use this whenever any desk panel is replaced:
    hyprctl workspacerules   # confirm workspace 1 → ViewSonic, default:true
    ```
 
-### What changed (live config)
+### What changed (Session 9 layout)
 
-**File:** `~/.config/hypr/monitors.conf`
+**File:** `~/.config/hypr/monitors.conf`  
+*Hz in this block is historical — live refresh is `@59.95` per [CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz).*
 
 ```ini
 env = GDK_SCALE,1
 
-# Top row — left → center → right  (widths 1920 + 2560 + 1920 → offsets 0, 1920, 4480)
+# widths 1920 + 2560 + 1920 → offsets 0, 1920, 4480
 monitor = desc:Sceptre Tech Inc Sceptre F27, 1920x1080@60, 0x0, 1
-monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@74.93, 1920x0, 1
+monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@74.93, 1920x0, 1   # → @59.95 in 011
 monitor = desc:AOC 27E2UA, 1920x1080@60, 4480x0, 1
-
-# Laptop under ViewSonic: center x = 1920+1280 = 3200; laptop logical w = 1280 → x = 2560
 monitor = eDP-1, 1920x1200@60, 2560x1440, 1.5
-
 monitor = , preferred, auto, 1
 
 workspace = 1, monitor:desc:ViewSonic Corporation VX3276-QHD, default:true
@@ -269,14 +273,13 @@ cursor {
 ```
 ┌─────────────┬──────────────────┬─────────────┐
 │  Sceptre    │  ViewSonic QHD   │  AOC        │
-│  1920×1080  │  2560×1440@75    │  1920×1080  │
-│  (0,0)      │  (1920,0) ★      │  (4480,0)   │
+│  1920×1080  │  2560×1440@60 ★  │  1920×1080  │
+│  (0,0)      │  (1920,0)        │  (4480,0)   │
 └─────────────┴────────┬─────────┴─────────────┘
-                       │  eDP-1 (1.5×)         │
-                       │  logical 1280×800     │
+                       │  eDP-1 · 1.5×         │
                        │  (2560,1440)          │
                        └───────────────────────┘
-  ★ primary: workspace 1 default + cursor on login
+  ★ primary · live Hz from CHG-011
 ```
 
 ### Optimization choices (ViewSonic as primary)
@@ -321,9 +324,8 @@ To re-seat the old Samsung: put its `desc:` line back at `1920x0` with `1920x108
 
 ## CHG-011 — ViewSonic QHD refresh: EDID 59.95 Hz
 
-**Session 11 · CHG-011 · 2026-08-05 · Applied · Host: 83te (docked)**
-
-*Appended to Chapter I. Corrects the refresh-rate choice from [CHG-009](#chg-009--center-monitor-swap) only; layout, primary, and offsets are unchanged. See also the [CHG log](#chg-log).*
+> `11` · **CHG-011** · 2026-08-05 ~15:05 · **Applied** · `83te` (docked)  
+> Appends Ch I. Corrects [009](#chg-009--center-monitor-swap) refresh only — layout · primary · offsets unchanged.
 
 ### Synopsis
 
@@ -410,7 +412,7 @@ Only when `availableModes` actually lists a ~75 Hz QHD mode. Until then, optio
 
 # Chapter II — A prompt worth looking at
 
-**Session 2 · CHG-002 · 2026-07-06 · Applied · Hosts: p3oos, 83te**
+> `02` · **CHG-002** · 2026-07-06 · **Applied** · `p3oos` · `83te`
 
 ### Synopsis
 
@@ -470,7 +472,21 @@ Or soft: `fish -c 'fisher remove ilancosman/tide franciscolourenco/done'`.
 
 # Chapter III — The terminal speaks first
 
-**Session 3 · CHG-003 · 2026-07-06 · Applied**
+> Terminal session UX — launch summary · path contrast · land in Projects.
+
+| S | CHG | Piece | Status |
+|---|-----|-------|--------|
+| 3 | [003](#chg-003--alacritty-startup) | Startup summary → fish | Applied |
+| 5 | [005](#chg-005--readable-paths) | Tide pwd contrast | Applied |
+| 6 | [006](#chg-006--land-in-projects) | `cd` Projects at startup | Applied |
+
+**Arc:** 003 → 005 → 006. **006 is shared** with [Ch IV](#chapter-iv--projects-on-their-own-disk). Tide install: [Ch II](#chapter-ii--a-prompt-worth-looking-at).
+
+---
+
+## CHG-003 — Alacritty startup
+
+> `03` · **CHG-003** · 2026-07-06 · **Applied**
 
 ### Synopsis
 
@@ -490,7 +506,7 @@ osc52 = "CopyPaste"
 shell = { program = "/usr/bin/fish", args = ["-l", "-c", "uname -a && ip -4 -br addr && echo $0 && lsblk -f && fastfetch; exec fish -l"] }
 ```
 
-*(Session 6 appends `cd /data/Development/Projects` before `exec fish -l`.)*
+*(Session 6 / [CHG-006](#chg-006--land-in-projects) appends `cd /data/Development/Projects` before `exec fish -l`.)*
 
 ### Verify
 
@@ -508,9 +524,73 @@ cp ~/.config/alacritty/alacritty.toml.bak.* ~/.config/alacritty/alacritty.toml
 
 ---
 
+## CHG-005 — Readable paths
+
+> `05` · **CHG-005** · 2026-07-08 · **Applied**  
+> Appends Ch III. Tide baseline: [Ch II](#chapter-ii--a-prompt-worth-looking-at). Contrast only.
+
+### Synopsis
+
+Tide’s pwd segment uses a blue background. Stock Rainbow text (`brwhite`/`white`) was unreadable. Set pwd text colors to **black**.
+
+### What changed
+
+```bash
+fish -c 'set -U tide_pwd_color_anchors black
+         set -U tide_pwd_color_dirs black
+         set -U tide_pwd_color_truncated_dirs black'
+# existing session: tide reload
+```
+
+### Backout
+
+```bash
+fish -c 'set -U tide_pwd_color_anchors brwhite
+         set -U tide_pwd_color_dirs brwhite
+         set -U tide_pwd_color_truncated_dirs white'
+```
+
+---
+
+## CHG-006 — Land in Projects
+
+> `06` · **CHG-006** · 2026-07-08 · **Applied** · shared [Ch IV](#chg-006--land-in-projects--disk-home)  
+> Terminal half — extends CHG-003. Requires `/data` from CHG-004.
+
+### Synopsis
+
+After Session 4, Projects live under `/data`. New terminals still opened in `$HOME`. Append `cd /data/Development/Projects` to the Alacritty startup chain before `exec fish -l`.
+
+### What changed
+
+**File:** `~/.config/alacritty/alacritty.toml` — startup `-c` string ends with:
+
+```text
+… && fastfetch; cd /data/Development/Projects; exec fish -l
+```
+
+### Backout
+
+Remove `cd /data/Development/Projects;` from the `shell` args (restore Session 3–only chain), or restore `alacritty.toml` backup.
+
+---
+
 # Chapter IV — Projects on their own disk
 
-**Session 4 · CHG-004 · 2026-07-06 (p3oos) / 2026-07-09 (83te) · Applied · Risk: High**
+> Durable storage for Projects — and landing there by default.
+
+| S | CHG | Piece | Status |
+|---|-----|-------|--------|
+| 4 | [004](#chg-004--projects-on-their-own-disk) | LUKS + XFS `/data` · migrate | Applied · **High** risk |
+| 6 | [006](#chg-006--land-in-projects--disk-home) | Land in Projects | Applied · shared Ch III |
+
+**Arc:** 004 (place) → 006 (arrive). Procedure for 006: [Ch III](#chg-006--land-in-projects).
+
+---
+
+## CHG-004 — Projects on their own disk
+
+> `04` · **CHG-004** · 2026-07-06 `p3oos` · 2026-07-09 `83te` · **Applied** · **High** risk
 
 ### Synopsis
 
@@ -592,58 +672,24 @@ Tide/fish (Session 2) and Alacritty startup (Sessions 3 & 6) were applied alongs
 
 ---
 
-# Chapter V — Readable paths
+## CHG-006 — Land in Projects (disk home)
 
-**Session 5 · CHG-005 · 2026-07-08 · Applied**
-
-### Synopsis
-
-Tide’s pwd segment uses a blue background. Stock Rainbow text (`brwhite`/`white`) was unreadable. Set pwd text colors to **black**.
-
-### What changed
-
-```bash
-fish -c 'set -U tide_pwd_color_anchors black
-         set -U tide_pwd_color_dirs black
-         set -U tide_pwd_color_truncated_dirs black'
-# existing session: tide reload
-```
-
-### Backout
-
-```bash
-fish -c 'set -U tide_pwd_color_anchors brwhite
-         set -U tide_pwd_color_dirs brwhite
-         set -U tide_pwd_color_truncated_dirs white'
-```
-
----
-
-# Chapter VI — Land in Projects
-
-**Session 6 · CHG-006 · 2026-07-08 · Applied**
+> `06` · **CHG-006** · 2026-07-08 · **Applied** · shared [Ch III](#chg-006--land-in-projects)  
+> Storage half — once Projects live on `/data`, cwd must follow.
 
 ### Synopsis
 
-After Session 4, Projects live under `/data`. New terminals still opened in `$HOME`. Append `cd /data/Development/Projects` to the Alacritty startup chain before `exec fish -l`.
+Disk migration alone leaves new Alacritty windows in `$HOME`. CHG-006 adds `cd /data/Development/Projects` to the startup chain so every Super+Return lands on the XFS tree from CHG-004.
 
-### What changed
+### Procedure / backout
 
-**File:** `~/.config/alacritty/alacritty.toml` — startup `-c` string ends with:
-
-```text
-… && fastfetch; cd /data/Development/Projects; exec fish -l
-```
-
-### Backout
-
-Remove `cd /data/Development/Projects;` from the `shell` args (restore Session 3–only chain), or restore `alacritty.toml` backup.
+See **[Chapter III · CHG-006](#chg-006--land-in-projects)** for the full `alacritty.toml` edit, verify checklist, and backout. Do not duplicate the shell string in two places when changing it later — edit once, keep both chapter pointers honest.
 
 ---
 
-# Chapter VII — Sound that knows its place
+# Chapter V — Sound that knows its place
 
-**Session 7 · CHG-007 · 2026-07-19 · Applied · Host: 83te**
+> `07` · **CHG-007** · 2026-07-19 · **Applied** · `83te`
 
 ### Synopsis
 
@@ -669,12 +715,10 @@ Calls (mic)       →  best available source in the table above
 
 `audio-precedence-watch` re-glues EQ output and default source when devices appear or vanish.
 
-### Repo layout
+### Repo layout (audio)
 
 ```
 omarchy/
-├── README.md                          ← this book
-├── docs/chg007-audio-precedence-qos.md
 ├── bin/audio-precedence-{follow,watch}
 ├── config/
 │   ├── audio-eq/{rock,edm}.conf
@@ -684,9 +728,8 @@ omarchy/
 │       ├── 51-bluetooth-quality.conf
 │       ├── 52-stream-music-eq.conf
 │       └── bluetooth-a2dp-autoconnect.conf
-└── scripts/
-    ├── chg004-*.sh / chg004-verify.fish
-    └── chg007-{apply,verify,backout}.*
+├── docs/chg007-*.md · chg010-*.md
+└── scripts/chg007-{apply,verify,backout}.* · chg010-{apply,verify}.*
 ```
 
 ### Apply / verify (desktop user, not root)
@@ -726,9 +769,8 @@ bash scripts/chg007-backout.sh --soft
 
 ## CHG-010 — AUX desk headset in the chain
 
-**Session 10 · CHG-010 · 2026-08-05 · Ready to apply · Host: 83te**
-
-*Appended to Chapter VII. CHG-007 above is the original three-device precedence + Rock EQ baseline; this change inserts permanently-plugged desk AUX and corrects the sof pro-audio map. See also the [CHG log](#chg-log).*
+> `10` · **CHG-010** · 2026-08-05 · **Ready** · `83te`  
+> Appends Ch V. Inserts desk AUX + corrects sof pro-audio map (CHG-007 baseline).
 
 ### Synopsis
 
@@ -856,9 +898,10 @@ bash scripts/chg007-backout.sh
 - Syncthing mesh is still on the [Roadmap](#roadmap) as **CHG-012** (Session 11 took CHG-011 for ViewSonic EDID refresh).
 
 ---
-# Chapter VIII — Screenshots on data
 
-**Session 8 · CHG-008 · 2026-07-29 · Applied · Host: 83te**
+# Chapter VI — Screenshots on data
+
+> `08` · **CHG-008** · 2026-07-29 · **Applied** · `83te`
 
 ### Synopsis
 
@@ -980,28 +1023,56 @@ Capture then falls back to `XDG_PICTURES_DIR` / `~/Pictures`.
 
 ---
 
-## Roadmap
+## CHG register
 
-Planned work not yet in the [CHG log](#chg-log). Assign the next free CHG when a session opens.
+Operator index — every change ID, date-ordered. Compact twin: [CHG log](#chg-log). Narrative lives in the chapters above.
 
-| Tentative | Topic | Notes |
-|-----------|-------|--------|
-| CHG-012 | Syncthing mesh for `/data/Development/Projects` (a8oos, p3oos, 83te) | See `socfoundry/syncthing` if present; was roadmap-slotted as 011 before Session 11 took that ID |
-| CHG-013+ | Keybindings & daily workflow; workspace strategy; themes; waybar/walker; CachyOS habit diffs | Ideas |
+| Column | Meaning |
+|--------|---------|
+| **Applied** | `YYYY-MM-DD` (per host if multi-host). Times are local wall clock when known. |
+| **Risk** | `Low` · `Med` · `High` (High = no casual reverse without restore media) |
+| **Surfaces** | Files · services · packages touched |
+| **Formal note** | `docs/chg00N-*.md` when present |
+
+| Applied | CHG | Session | Title | Host(s) | Status | Risk | Home | Surfaces / artifacts | Formal note | Notes |
+|---------|-----|---------|-------|---------|--------|------|------|----------------------|-------------|-------|
+| 2026-07-05 | [CHG-001](#chapter-i--the-desk-in-order) | 1 | The desk in order (triple monitors) | p3oos | Applied | Low | [Ch I](#chapter-i--the-desk-in-order) | `~/.config/hypr/monitors.conf` — explicit `DP-*` layout Sceptre→Samsung→AOC, `GDK_SCALE=1` | — | Stock Omarchy auto layout was desk-backwards; 1080p triple. |
+| 2026-07-06 | [CHG-002](#chapter-ii--a-prompt-worth-looking-at) | 2 | A prompt worth looking at (fish + Tide) | p3oos, 83te | Applied | Low | [Ch II](#chapter-ii--a-prompt-worth-looking-at) | fish as login shell; Fisher; Tide v6 Rainbow; `done` plugin; bash+Starship retained | — | Daily interactive shell baseline for both hosts. |
+| 2026-07-06 | [CHG-003](#chg-003--alacritty-startup) | 3 | The terminal speaks first (Alacritty startup) | p3oos, 83te | Applied | Low | [Ch III](#chapter-iii--the-terminal-speaks-first) | `~/.config/alacritty/alacritty.toml` — one-shot `uname` / `ip` / `lsblk` / `fastfetch` then `exec fish -l` | — | Super+Return path only; tmux Super+Alt+Return unaffected. Extended by CHG-006. |
+| 2026-07-06 (p3oos) · 2026-07-09 (83te) | [CHG-004](#chg-004--projects-on-their-own-disk) | 4 | Projects on their own disk (LUKS + XFS `/data`) | p3oos, 83te | Applied | **High** | [Ch IV](#chapter-iv--projects-on-their-own-disk) | GPT/LUKS/btrfs shrink; new LUKS+XFS p3 → `/data`; `crypttab`/`fstab`/UKI; migrate `~/Development/Projects` → `/data/…` + symlink; `scripts/chg004-*` | — | Wipe-surviving Projects. 83te data LUKS `a830ae16-…` / XFS `5e7b8d54-…`. |
+| 2026-07-08 | [CHG-005](#chg-005--readable-paths) | 5 | Readable paths (Tide pwd contrast) | p3oos, 83te | Applied | Low | [Ch III · CHG-005](#chg-005--readable-paths) | fish universals: `tide_pwd_color_{anchors,dirs,truncated_dirs}=black` | — | Rainbow blue segment; Tide install remains Ch II. |
+| 2026-07-08 | [CHG-006](#chg-006--land-in-projects) | 6 | Land in Projects (Alacritty cwd) | p3oos, 83te | Applied | Low | [Ch III](#chg-006--land-in-projects) · [Ch IV](#chg-006--land-in-projects--disk-home) | `alacritty.toml` startup: `cd /data/Development/Projects` before `exec fish -l` | — | **Shared** Ch III (terminal chain) + Ch IV (disk outcome). Requires CHG-004 path. |
+| 2026-07-19 | [CHG-007](#chapter-v--sound-that-knows-its-place) | 7 | Sound that knows its place (audio precedence + Rock EQ) | 83te | Applied | Med | [Ch V](#chapter-v--sound-that-knows-its-place) | WirePlumber precedence; EQ filter-chain (Rock); `audio-precedence-{follow,watch}`; user systemd unit; binds Super+Ctrl+E | [docs/chg007-audio-precedence-qos.md](docs/chg007-audio-precedence-qos.md) | Order P30i → Lenovo → built-in → camera (pre-AUX). Apply: `scripts/chg007-apply.sh`. |
+| 2026-07-29 | [CHG-008](#chapter-vi--screenshots-on-data) | 8 | Screenshots on data (XFS route + Keychron Q4 bind) | 83te | Applied | Low | [Ch VI](#chapter-vi--screenshots-on-data) | `OMARCHY_SCREENSHOT_DIR` → `/data/Development/Projects/socfoundry/ss`; fish + Hyprland `env`; `SUPER SHIFT,S` region capture; optional `~/Pictures/Screenshots` symlink | — | Verified files e.g. `screenshot-2026-07-29_07-52-51.png` on XFS. |
+| 2026-08-05 | [CHG-009](#chg-009--center-monitor-swap) | 9 | Center monitor swap (Samsung → ViewSonic QHD) | 83te (docked) | Applied | Low | [Ch I · CHG-009](#chg-009--center-monitor-swap) | `monitors.conf` — `desc:` Sceptre / ViewSonic VX3276-QHD / AOC; offsets 0 / 1920 / 4480; primary workspace 1 + cursor; eDP under center | [docs/chg009-center-monitor-swap.md](docs/chg009-center-monitor-swap.md) | Layout/primary still current. **Refresh `@74.93` superseded by CHG-011.** |
+| 2026-08-05 | [CHG-010](#chg-010--aux-desk-headset-in-the-chain) | 10 | AUX desk headset in the chain | 83te | Ready to apply | Med | [Ch V · CHG-010](#chg-010--aux-desk-headset-in-the-chain) | `50-device-precedence.conf` + follower: sof pro-audio map fix; AUX Jack Out/In priority ~1000; jack sense | [docs/chg010-aux-desk-headset.md](docs/chg010-aux-desk-headset.md) | Order P30i → Lenovo → **AUX** → built-in → camera. `scripts/chg010-apply.sh` / `chg010-verify.fish`. |
+| 2026-08-05 (~15:05 local) | [CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz) | 11 | ViewSonic QHD refresh: EDID 59.95 Hz (fix Out of Range) | 83te (docked) | Applied | Low | [Ch I · CHG-011](#chg-011--viewsonic-qhd-refresh-edid-5995-hz) | `monitors.conf` ViewSonic `2560x1440@74.93` → `@59.95`; backup `monitors.conf.bak.chg011.20260805-150528` | [docs/chg011-viewsonic-edid-refresh.md](docs/chg011-viewsonic-edid-refresh.md) | EDID lists only QHD@59.95 on this dock path. No package revert. Supersedes CHG-009 Hz only. |
+
+Add a row here **and** in the [log](#chg-log) for every new session. Backups: `*.bak.chg00N.<YYYYMMDD-HHMMSS>`.
+
+**Next free ID → [CHG-012](#roadmap)**
 
 ---
 
-## Appendix A — Conventions for the next chapter
+## Roadmap
 
-When you open Session *N*:
+Not yet in the log. Claim the next free CHG when a session opens.
 
-1. Assign **CHG-00N** (next free integer; never skip). Add a row to the **[CHG log](#chg-log)** with date, host, status, and home chapter.
-2. If the work **extends an existing topic**, append a `## CHG-00N — …` section under that chapter. Do **not** invent Chapter IX/X only because the session number grew.
-3. If the work is a **new topic**, open the next chapter number (IX, X, …) and link it from the table of contents.
-4. Write: Synopsis · Why · What changed · Procedure · Verify · Backout.
-5. Put scripts under `scripts/chg00N-*` and durable config under `config/`; formal notes under `docs/chg00N-*.md` when useful.
-6. Prefer backups named `*.bak.chg00N.<timestamp>`.
-7. **Standing order (agents / assistants):** for **every** issue the operator presents in this repo — fix, investigation, or applied config change — open the next CHG in the same session (or immediately after the fix lands). Do not wait to be asked for the ledger update. Update the CHG log, the home chapter section, `docs/chg00N-*.md`, TOC links, and the edition footer. Re-number roadmap “tentative” IDs if they collide with the new free integer.
+| ID | Topic | Notes |
+|----|-------|--------|
+| **012** | Syncthing mesh for `/data/Development/Projects` | a8oos · p3oos · 83te — was tentative 011 before Session 11 |
+| **013+** | Keybinds · workspaces · themes · waybar/walker · CachyOS diffs | Ideas only |
+
+---
+
+## Appendix A — Open the next session
+
+1. Assign **CHG-00N** (next free integer · never skip). Row in [log](#chg-log) + [register](#chg-register).
+2. Same topic → append `## CHG-00N` under that chapter. New topic → next Roman chapter + TOC link.
+3. Write: **Synopsis · Why · What changed · Procedure · Verify · Backout**.
+4. Artifacts: `scripts/chg00N-*` · `config/` · `docs/chg00N-*.md` when useful.
+5. Backups: `*.bak.chg00N.<YYYYMMDD-HHMMSS>`.
+6. **Agents:** every issue in this repo opens a CHG in the same turn — log, register, chapter, docs, TOC, footer. Renumber roadmap if IDs collide.
 
 ---
 
@@ -1010,7 +1081,7 @@ When you open Session *N*:
 ```bash
 # Omarchy
 omarchy commands
-omarchy refresh hyprland          # nuclear Hyprland reset (backs up first)
+omarchy refresh hyprland              # nuclear Hyprland reset (backs up first)
 omarchy debug --no-sudo --print
 
 # Displays
@@ -1023,22 +1094,33 @@ lsblk -f
 df -hT / /data
 readlink -f ~/Development/Projects
 
-# Audio (83te — Ch VII; CHG-007 / CHG-010)
+# Audio (83te · Ch V · 007 / 010)
 wpctl status
 pactl get-default-sink
 pactl get-default-source
 audio-eq status
 audio-precedence-follow --print
-# jack sense (AUX): amixer -c sofsoundwire cget name='Headphone Jack'
+# AUX jack: amixer -c sofsoundwire cget name='Headphone Jack'
 # order: P30i → Lenovo USB-C → AUX → built-in → camera
 
-# Screenshots (83te, Session 8)
+# Screenshots (83te · Ch VI)
 echo $OMARCHY_SCREENSHOT_DIR
-omarchy screenshot          # or: omarchy-capture-screenshot
-# Super+Shift+S — region capture (Keychron Q4 / no Print key)
+omarchy screenshot                    # Super+Shift+S region
 ls /data/Development/Projects/socfoundry/ss | tail
 ```
 
 ---
 
-*End of current edition. Last applied CHG: **011** (ViewSonic EDID refresh, Ch I, 2026-08-05). **CHG-010** (AUX audio, Ch VII) is staged — re-run `scripts/chg010-apply.sh` to land it. See [CHG log](#chg-log).*
+<div align="center">
+
+<sub>
+
+**Edition** · last applied **CHG-011** · 2026-08-05 ~15:05 · Ch I  
+**Staged** · CHG-010 · `scripts/chg010-apply.sh`  
+**Map** · III = 003·005·006 · IV = 004·006 · V = audio · VI = shots  
+
+[log](#chg-log) · [register](#chg-register) · [roadmap](#roadmap)
+
+</sub>
+
+</div>

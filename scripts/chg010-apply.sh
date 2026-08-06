@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # CHG-010 apply — AUX desk headset in the audio precedence chain (83te)
 #
-# Session 10 · Chapter X. Installs the current audio stack (extends CHG-007):
+# Session 10 · Chapter V (audio). Installs the current audio stack (extends CHG-007):
 #   P30i → Lenovo USB-C → AUX 3.5mm → built-in speakers/dmic → camera last
 #
 # Backups use *.bak.chg010.<timestamp>. Shared installer lives in chg007-apply.sh.

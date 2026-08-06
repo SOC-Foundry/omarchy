@@ -1,11 +1,8 @@
 # CHG-010 — AUX desk headset in the chain
 
-**Session:** 10 · **Home chapter:** [VII · CHG-010](../README.md#chg-010--aux-desk-headset-in-the-chain)  
-**CHG log:** [chronological ledger](../README.md#chg-log)  
-**Host:** `83te`  
-**Date:** 2026-08-05  
-**Status:** Ready to apply  
-**Appends:** Chapter VII (Session 7 / CHG-007) — not a new chapter
+> `10` · **Ready** · 2026-08-05 · `83te`  
+> Home: [Ch V · 010](../README.md#chg-010--aux-desk-headset-in-the-chain) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
+> Appends Ch V (baseline [CHG-007](chg007-audio-precedence-qos.md))
 
 ---
 
@@ -72,5 +69,5 @@ bash scripts/chg007-backout.sh --soft   # EQ + watcher only
 
 ## Notes
 
-Full checklist (“how to add another audio I/O”): **README Chapter VII → CHG-010**.  
+Full checklist (“how to add another audio I/O”): **README Chapter V → CHG-010**.  
 Baseline stack design (EQ, services, backout detail): **CHG-007** / `docs/chg007-audio-precedence-qos.md`.
