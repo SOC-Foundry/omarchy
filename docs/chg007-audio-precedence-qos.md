@@ -1,7 +1,7 @@
-# CHG-007 — Audio precedence + Rock EQ
+# CHG-007 — Audio Precedence Config
 
 > `07` · **Applied** · 2026-07-19 · `83te`  
-> Home: [Ch V](../README.md#chapter-v--sound-that-knows-its-place) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
+> Home: [Ch IV · 007](../README.md#chg-007--audio-precedence-config) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
 > Later: [CHG-010](chg010-aux-desk-headset.md) (AUX + sof map fix)
 
 Host: Lenovo Yoga 7 2-in-1 16IPH11 · PipeWire + WirePlumber.  

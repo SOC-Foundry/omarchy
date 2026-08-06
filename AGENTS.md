@@ -1,28 +1,47 @@
 # Agents
 
-Instructions for assistants working in this **change ledger** (not upstream Omarchy).
+This repo is a **CLI agent runbook** + change ledger for Omarchy user-space config.
 
 ## Standing order
 
-For **every** issue, investigation, or applied change:
+For every issue / applied change:
 
-1. Do not wait to be asked to document it.
-2. Assign the next free `CHG-00N` (Session *N* ↔ ID · no gaps).
-3. In the same turn, update:
-   - [CHG log](README.md#chg-log)
-   - [CHG register](README.md#chg-register) — time · risk · surfaces · notes
-   - Home chapter (`## CHG-00N — …`) — append topic or open next chapter
-   - `docs/chg00N-*.md` when the change needs a formal note
-   - TOC · edition footer · roadmap IDs if they collide
-4. Backups: `*.bak.chg00N.<YYYYMMDD-HHMMSS>`
-5. User space only: `~/.config/` + this repo. **Never** `~/.local/share/omarchy/`.
-6. Every CHG ends with **Backout**. Label destructive disk work **High**.
+1. Assign next free `CHG-00N` (Session *N* · no gaps).
+2. Write a block in `README.md` with only:
+   - **Objective** · **Challenge** · **Paths** · **Execute** · **Backout**
+3. Add a **Changelog** row (date · host · status · risk · surfaces).
+4. Backup: `*.bak.chg00N.<YYYYMMDD-HHMMSS>`
+5. Optional: `docs/chg00N-*.md` + `scripts/chg00N-*` if needed.
+6. Never edit `~/.local/share/omarchy/`.
+7. High-risk disk work: label **High**; no casual reverse.
 
-Full conventions: [Appendix A](README.md#appendix-a--conventions-for-the-next-chapter).
+## Format (copy)
 
-## Voice
+```markdown
+## CHG-00N — Title
 
-- Crisp · professional · field-manual tone (dark Geist — sparse, high contrast in prose).
-- Tables over walls of text. Checklists for verify.
-- Cross-link supersessions (e.g. 011 → 009 Hz only).
-- Hosts: `83te` (Yoga docked) · `p3oos` (desk tower).
+> `NN` · Status · date · host · Risk
+
+| | |
+|---|---|
+| **Objective** | … |
+| **Challenge** | … |
+| **Paths** | … |
+
+**Execute**
+
+\`\`\`bash
+# …
+\`\`\`
+
+**Backout**
+
+\`\`\`bash
+# …
+\`\`\`
+```
+
+## Hosts
+
+- `83te` — Yoga docked  
+- `p3oos` — desk tower  
