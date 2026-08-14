@@ -20,3 +20,9 @@ README.md.bak.*
 .env
 .env.*
 !/*.example
+
+# Vendor installers + makepkg artifacts (Island .deb is ~191M)
+*.deb
+*.pkg.tar.zst
+pkg/*/src/
+pkg/*/pkg/

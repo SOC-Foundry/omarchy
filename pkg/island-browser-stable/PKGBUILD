@@ -1,0 +1,65 @@
+# Maintainer: local (CHG-012) — converts Island's vendor .deb for Arch/Omarchy
+# Source .deb lives in the omarchy kit root (not fetched from the net).
+
+pkgname=island-browser-stable
+pkgver=150.1.96.29
+pkgrel=1
+pkgdesc="Island Enterprise Browser (vendor .deb, local convert)"
+arch=('x86_64')
+url="https://www.island.io/"
+license=('custom:island')
+depends=(
+	'alsa-lib'
+	'gtk3'
+	'libcups'
+	'libxss'
+	'libxtst'
+	'nss'
+	'ttf-liberation'
+	'xdg-utils'
+)
+optdepends=(
+	'pipewire: WebRTC desktop sharing under Wayland'
+	'gnome-keyring: store passwords in GNOME keyring'
+)
+options=('!emptydirs' '!strip')
+install=$pkgname.install
+source=(
+	"${pkgname}_${pkgver}-1_amd64.deb"
+	"${pkgname}.sh"
+)
+sha256sums=(
+	'ec320e0f0a1e54012763e1fc203bb2a18dd4c0bfd6815ff4816993be8208adb0'
+	'SKIP'
+)
+noextract=("${pkgname}_${pkgver}-1_amd64.deb")
+
+package() {
+	bsdtar -O -xf "${pkgname}_${pkgver}-1_amd64.deb" data.tar.xz | bsdtar -xf - -C "$pkgdir/"
+
+	# Arch launcher that reads ~/.config/island-browser-flags.conf
+	install -Dm755 "${pkgname}.sh" "$pkgdir/usr/bin/island-browser-stable"
+	ln -sf island-browser-stable "$pkgdir/usr/bin/island-browser"
+
+	# Icons (hicolor) — vendor postinst used xdg-icon-resource
+	for i in 16 24 32 48 64 128 256; do
+		install -Dm644 "$pkgdir/opt/island/island-browser/product_logo_${i}.png" \
+			"$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/island-browser.png"
+	done
+
+	# WM class for Hyprland / portals (once, in the main Desktop Entry)
+	for desk in island-browser.desktop org.island.Island.desktop; do
+		if ! grep -q '^StartupWMClass=' "$pkgdir/usr/share/applications/$desk"; then
+			sed -i '/^\[Desktop Entry\]/a StartupWMClass=Island' \
+				"$pkgdir/usr/share/applications/$desk"
+		fi
+	done
+
+	# Chromium setuid sandbox (present in the .deb; make sure it survives)
+	chmod 4755 "$pkgdir/opt/island/island-browser/chrome-sandbox"
+
+	# Debian-only: apt repo cron, daily job. Useless on Arch.
+	rm -rf \
+		"$pkgdir/etc/cron.daily" \
+		"$pkgdir/opt/island/island-browser/cron"
+}

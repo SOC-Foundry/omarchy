@@ -11,7 +11,7 @@ Not the distro. Execute only user-space changes: `~/.config/**` + this repo.
 | Hosts | `p3oos` (desk) · `83te` (Yoga docked) |
 | Session rule | Session *N* = `CHG-00N` (no gaps) |
 | Backup rule | `*.bak.chg00N.<YYYYMMDD-HHMMSS>` before every edit |
-| Next free | **CHG-012** |
+| Next free | **CHG-014** |
 
 ```bash
 omarchy debug --no-sudo --print
@@ -55,6 +55,8 @@ hyprctl monitors
 | 2026-08-05 | [009](#chg-009--center-monitor-swap) | Center monitor swap | 83te | Applied | Low | `monitors.conf` layout · primary |
 | 2026-08-05 | [010](#chg-010--aux-desk-headset-in-the-chain) | AUX desk headset | 83te | **Ready** | Med | WP AUX · `scripts/chg010-*` |
 | 2026-08-05 ~15:05 | [011](#chg-011--viewsonic-edid-refresh) | ViewSonic EDID refresh | 83te | Applied | Low | ViewSonic `@59.95` |
+| 2026-08-14 | [012](#chg-012--island-enterprise-browser) | Island Enterprise Browser | 83te | Applied | Med | `island-browser-stable` · flags · hypr tag |
+| 2026-08-14 | [013](#chg-013--island-setup) | Island setup | 83te | Applied | Low | `hypr/bindings.conf` Super+Shift+I |
 
 ---
 
@@ -492,13 +494,82 @@ rm -f ~/Pictures/Screenshots
 
 ---
 
+# VI · Apps
+
+| CHG | Status |
+|-----|--------|
+| 012 | Applied · package |
+| 013 | Applied · desk setup |
+
+---
+
+## CHG-012 — Island Enterprise Browser
+
+> `12` · Applied · 2026-08-14 · `83te` · Med · `docs/chg012-island-enterprise-browser.md`
+
+| | |
+|---|---|
+| **Objective** | Install Island Enterprise Browser from the vendor `.deb` as a pacman-tracked package; Wayland flags; Hyprland chromium tag. Leave the default browser alone. |
+| **Challenge** | Island ships Debian only. Omarchy is Arch — do not use `dpkg`/`apt`. Skip apt repo, alternatives, AppArmor. |
+| **Paths** | `island-browser-stable_150.1.96.29-1_amd64.deb` · `pkg/island-browser-stable/` · `scripts/chg012-*` · `~/.config/island-browser-flags.conf` · `~/.config/hypr/hyprland.conf` |
+
+**Execute**
+
+```bash
+cd /data/Development/Projects/socfoundry/omarchy
+bash scripts/chg012-apply.sh
+fish scripts/chg012-verify.fish
+# expect: pacman -Q island-browser-stable · island-browser-stable --version
+# Walker: Island · Super+Shift+B stays Chrome (xdg default)
+```
+
+**Backout**
+
+```bash
+bash scripts/chg012-backout.sh
+# restores hypr + flags; sudo pacman -Rns island-browser-stable
+# ~/.config/island profile is left in place
+```
+
+---
+
+## CHG-013 — Island setup
+
+> `13` · Applied · 2026-08-14 · `83te` · Low · `docs/chg013-island-setup.md`  
+> Needs [012](#chg-012--island-enterprise-browser).
+
+| | |
+|---|---|
+| **Objective** | Desk setup for Island as the work browser: launch-or-focus + incognito binds. Leave Chrome as xdg default. |
+| **Challenge** | 012 only installed the package. Need a chord that does not steal Super+Shift+B. Live class is `island-browser`. Enrollment stays operator-only. |
+| **Paths** | `~/.config/hypr/bindings.conf` · `scripts/chg013-*` |
+
+**Execute**
+
+```bash
+cd /data/Development/Projects/socfoundry/omarchy
+bash scripts/chg013-apply.sh
+fish scripts/chg013-verify.fish
+# Super+Shift+I → Island · Super+Shift+Alt+I incognito
+# Super+Shift+B still Chrome
+```
+
+**Backout**
+
+```bash
+bash scripts/chg013-backout.sh
+# package + ~/.config/island stay (use CHG-012 backout to remove the app)
+```
+
+---
+
 ## Roadmap
 
 | ID | Topic |
 |----|--------|
-| **012** | Syncthing mesh `/data/Development/Projects` (a8oos · p3oos · 83te) |
-| **013+** | Keybinds · workspaces · themes · waybar |
+| **014** | Syncthing mesh `/data/Development/Projects` (a8oos · p3oos · 83te) |
+| **015+** | Keybinds · workspaces · themes · waybar |
 
 ---
 
-<sub>Last applied **011** · staged **010** (`scripts/chg010-apply.sh`) · verbose history: `README.md.bak.verbose.*`</sub>
+<sub>Last applied **013** · staged **010** (`scripts/chg010-apply.sh`) · verbose history: `README.md.bak.verbose.*`</sub>
