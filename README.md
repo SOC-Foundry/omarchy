@@ -11,7 +11,7 @@ Not the distro. Execute only user-space changes: `~/.config/**` + this repo.
 | Hosts | `p3oos` (desk) · `83te` (Yoga docked) |
 | Session rule | Session *N* = `CHG-00N` (no gaps) |
 | Backup rule | `*.bak.chg00N.<YYYYMMDD-HHMMSS>` before every edit |
-| Next free | **CHG-014** |
+| Next free | **CHG-015** |
 
 ```bash
 omarchy debug --no-sudo --print
@@ -40,6 +40,9 @@ hyprctl monitors
 
 ---
 
+<a id="chg-log"></a>
+<a id="chg-register"></a>
+
 ## Changelog
 
 | Applied | CHG | Title | Host | Status | Risk | Surfaces |
@@ -57,6 +60,7 @@ hyprctl monitors
 | 2026-08-05 ~15:05 | [011](#chg-011--viewsonic-edid-refresh) | ViewSonic EDID refresh | 83te | Applied | Low | ViewSonic `@59.95` |
 | 2026-08-14 | [012](#chg-012--island-enterprise-browser) | Island Enterprise Browser | 83te | Applied | Med | `island-browser-stable` · flags · hypr tag |
 | 2026-08-14 | [013](#chg-013--island-setup) | Island setup | 83te | Applied | Low | `hypr/bindings.conf` Super+Shift+I |
+| 2026-08-27 | [014](#chg-014--snapper-pre-pacman-only-keep-last-2) | Snapper pre-pacman / keep 2 | 83te | Applied | **High** | `docs/chg014-snapper-pacman-policy.md` · `scripts/chg014-*` |
 
 ---
 
@@ -325,7 +329,8 @@ cp ~/.config/alacritty/alacritty.toml.bak.chg006.YYYYMMDD-HHMMSS ~/.config/alacr
 
 | CHG | Status |
 |-----|--------|
-| 004 | Applied · **High** risk |
+| 004 | Applied · **High** · OS on `nvme0n1p2`, Projects on `/data` |
+| 014 | Applied · **High** · Snapper pre-pacman, keep 2; 83te OS volume recovered |
 
 ---
 
@@ -367,6 +372,38 @@ readlink -f ~/Development/Projects   # → /data/Development/Projects
 - **High risk.** Prefer pre-change safety copies before deleting them.
 - Full reverse = restore GPT/LUKS from backup media or reinstall — not a one-liner.
 - Soft (migration only wrong): keep p3; fix symlink/mount. **Do not wipe p3** until backups verified elsewhere.
+
+---
+
+## CHG-014 — Snapper: pre-pacman only, keep last 2
+
+> `14` · Applied · 2026-08-27 · `83te` · **High** · [docs/chg014-snapper-pacman-policy.md](docs/chg014-snapper-pacman-policy.md)  
+> Same disk as [004](#chg-004--projects-on-their-own-disk) (`nvme0n1p2` 200 GiB btrfs root).
+
+| | |
+|---|---|
+| **Objective** | Snapshot root only immediately before pacman; retain the last 2. Stop hourly timeline snapshots from filling the 200 GiB OS volume. |
+| **Challenge** | Native Omarchy intent is `NUMBER_LIMIT=5` + `TIMELINE_CREATE=no`, but 83te ran stock Snapper (`TIMELINE_CREATE=yes`, `NUMBER_LIMIT=50`) with `snapper-timeline.timer` on and `snapper-cleanup.timer` off. ~882 snapshots, disk at 100% (681 MiB free). `du` cannot see snapshot exclusive COW (~70 GiB). Quotas disabled so `SPACE_LIMIT` is a no-op. `snapper delete` of a batch aborts if any ID is missing. |
+| **Paths** | `/etc/snapper/configs/root` · `/etc/pacman.d/hooks/05-snapper-pacman-pre.hook` · `/usr/local/sbin/snapper-pacman-pre` · `~/.local/bin/omarchy-snapshot` · `~/.config/omarchy/hooks/post-update.d/snapper-pacman-policy` · `docs/chg014-snapper-pacman-policy.md` · `scripts/chg014-*` |
+
+**Execute**
+
+```bash
+cd /data/Development/Projects/socfoundry/omarchy
+bash scripts/chg014-apply.sh
+sudo bash scripts/chg014-prune.sh          # keep last 2; skip if already pruned
+fish scripts/chg014-verify.fish
+# df -h /  should be well under 100%
+# sudo snapper --no-dbus -c root list  → current + 2
+```
+
+**Backout**
+
+```bash
+bash scripts/chg014-backout.sh
+# restores NUMBER_LIMIT=5 / no timeline / removes hook
+# does not undelete snapshots
+```
 
 ---
 
@@ -567,9 +604,9 @@ bash scripts/chg013-backout.sh
 
 | ID | Topic |
 |----|--------|
-| **014** | Syncthing mesh `/data/Development/Projects` (a8oos · p3oos · 83te) |
-| **015+** | Keybinds · workspaces · themes · waybar |
+| **015** | Syncthing mesh `/data/Development/Projects` (a8oos · p3oos · 83te) |
+| **016+** | Keybinds · workspaces · themes · waybar |
 
 ---
 
-<sub>Last applied **013** · staged **010** (`scripts/chg010-apply.sh`) · verbose history: `README.md.bak.verbose.*`</sub>
+<sub>Last applied **014** · staged **010** (`scripts/chg010-apply.sh`) · verbose history: `README.md.bak.verbose.*`</sub>

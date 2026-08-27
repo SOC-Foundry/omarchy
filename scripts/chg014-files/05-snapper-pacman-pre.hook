@@ -1,0 +1,13 @@
+[Trigger]
+Operation = Upgrade
+Operation = Install
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Creating snapper snapshot before pacman
+When = PreTransaction
+Depends = snapper
+AbortOnFail = false
+Exec = /usr/local/sbin/snapper-pacman-pre

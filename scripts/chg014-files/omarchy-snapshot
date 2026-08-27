@@ -1,0 +1,14 @@
+#!/bin/bash
+# Pre-pacman snapshots are created by /etc/pacman.d/hooks/05-snapper-pacman-pre.hook.
+# Skip the extra numbered snapshot omarchy-update takes so we keep the last 2
+# pacman restore points instead of two snapshots from the same update.
+set -euo pipefail
+
+OMARCHY_SNAPSHOT="${HOME}/.local/share/omarchy/bin/omarchy-snapshot"
+
+if [[ "${1:-}" == "create" ]]; then
+  echo "Skipping extra snapshot (pacman pre-transaction hook keeps the last 2)"
+  exit 0
+fi
+
+exec "$OMARCHY_SNAPSHOT" "$@"

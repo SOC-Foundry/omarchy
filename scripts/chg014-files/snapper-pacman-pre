@@ -1,0 +1,17 @@
+#!/bin/bash
+# Create a numbered Snapper snapshot before a pacman transaction, then
+# immediately drop everything except the last 2 numbered snapshots.
+set -u
+
+if [[ -n "${SNAPPER_SKIP:-}" || -n "${SNAP_PAC_SKIP:-}" ]]; then
+  exit 0
+fi
+
+/usr/bin/snapper --no-dbus --config root create \
+  --type single \
+  --cleanup-algorithm number \
+  --description "pacman" || true
+
+/usr/bin/snapper --no-dbus --config root cleanup number || true
+
+exit 0

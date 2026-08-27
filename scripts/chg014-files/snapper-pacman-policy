@@ -1,0 +1,28 @@
+#!/bin/bash
+# Keep Snapper aligned with: snapshot only before pacman, retain last 2.
+set -euo pipefail
+
+sudo snapper --no-dbus -c root set-config \
+  NUMBER_CLEANUP=yes \
+  NUMBER_MIN_AGE=0 \
+  NUMBER_LIMIT=2 \
+  NUMBER_LIMIT_IMPORTANT=2 \
+  TIMELINE_CREATE=no \
+  TIMELINE_CLEANUP=yes \
+  TIMELINE_MIN_AGE=0 \
+  TIMELINE_LIMIT_HOURLY=0 \
+  TIMELINE_LIMIT_DAILY=0 \
+  TIMELINE_LIMIT_WEEKLY=0 \
+  TIMELINE_LIMIT_MONTHLY=0 \
+  TIMELINE_LIMIT_QUARTERLY=0 \
+  TIMELINE_LIMIT_YEARLY=0 \
+  EMPTY_PRE_POST_CLEANUP=yes \
+  EMPTY_PRE_POST_MIN_AGE=0
+
+sudo systemctl disable --now snapper-timeline.timer >/dev/null 2>&1 || true
+sudo systemctl disable --now snapper-boot.timer >/dev/null 2>&1 || true
+sudo systemctl enable --now snapper-cleanup.timer >/dev/null 2>&1 || true
+
+if [[ -f /etc/default/limine ]] && grep -q '^MAX_SNAPSHOT_ENTRIES=' /etc/default/limine; then
+  sudo sed -i 's/^MAX_SNAPSHOT_ENTRIES=.*/MAX_SNAPSHOT_ENTRIES=2/' /etc/default/limine
+fi
