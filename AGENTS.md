@@ -14,6 +14,7 @@ For every issue / applied change:
 5. Optional: `docs/chg00N-*.md` + `scripts/chg00N-*` if needed.
 6. Never edit `~/.local/share/omarchy/`.
 7. High-risk disk work: label **High**; no casual reverse.
+8. **Git writes are human-only.** Never `git add`, `git commit`, `git push`, `git merge`, `git rebase`. Read-only git is fine. Kyle stages, signs (1Password), and pushes. A 1Password deny is intentional — do not retry.
 
 ## Format (copy)
 
