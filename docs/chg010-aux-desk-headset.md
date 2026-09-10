@@ -1,12 +1,22 @@
 # CHG-010 — AUX desk headset in the chain
 
-> `10` · **Ready** · 2026-08-05 · `83te`  
+> `10` · **Applied** · 2026-08-05 / 2026-09-09 · `83te`  
 > Home: [Ch IV · 010](../README.md#chg-010--aux-desk-headset-in-the-chain) · [log](../README.md#chg-log) · [register](../README.md#chg-register)  
-> Appends Ch IV (baseline [CHG-007](chg007-audio-precedence-qos.md))
+> Appends Ch IV (baseline [CHG-007](chg007-audio-precedence-qos.md))  
+> **Current failover:** [CHG-017](chg017-three-tier-audio-failover.md) (P30i → Lenovo → built-in). 010 sof map is still live; AUX is **not** in automatic pick.
 
 ---
 
-## Summary
+## Current (after 017)
+
+| Keep from 010 | Dropped by 017 |
+|---------------|----------------|
+| sof map: `pro-output-2` / `pro-input-10` = speakers / dmic | AUX in automatic failover (`priority 1000`) |
+| `pro-audio` profile on `sof_sdw` | Jack Out/In as rank-3 after USB-C |
+
+Live order is **P30i → Lenovo USB-C → built-in → camera**. Jack nodes are disabled. Re-running `chg010-apply.sh` would put AUX back in the chain — do not; use `chg017-apply.sh`.
+
+## Summary (as originally applied)
 
 | Item | Detail |
 |------|--------|
@@ -14,7 +24,7 @@
 | Order | P30i → Lenovo USB-C → **AUX** → built-in speakers/dmic → USB camera mic |
 | Fix | sof pro-audio map: `pro-output-0` / `pro-input-1` are **Jack Out/In**, not speakers/dmic |
 | Speakers / dmic | `pro-output-2` / `pro-input-10` at priority ~400 |
-| AUX priority | ~1000 (between USB-C 1500 and built-in 400) |
+| AUX priority | ~1000 (between USB-C 1500 and built-in 400) — **superseded** |
 
 ## Device order
 
@@ -69,5 +79,5 @@ bash scripts/chg007-backout.sh --soft   # EQ + watcher only
 
 ## Notes
 
-Full checklist (“how to add another audio I/O”): **README Chapter IV → CHG-010**.  
+Full checklist (“how to add another audio I/O”): **README Chapter IV → CHG-017** (live order) + this file (sof map).  
 Baseline stack design (EQ, services, backout detail): **CHG-007** / `docs/chg007-audio-precedence-qos.md`.

@@ -2,8 +2,9 @@
 # CHG-007 / CHG-010 — pick best hardware sink/source by precedence and keep
 # Rock EQ glued to that sink. Safe to run repeatedly (idempotent).
 #
-# Sink order:   P30i BT → Lenovo USB-C → AUX Jack Out → built-in Speaker
-# Source order: P30i BT mic → Lenovo USB-C mic → AUX Jack In → dmic → camera last
+# Sink order:   P30i BT → Lenovo USB-C → built-in Speaker
+# Source order: P30i BT mic → Lenovo USB-C mic → dmic → camera last
+# AUX 3.5mm jack is not in automatic failover (CHG-017).
 #
 # sof-soundwire pro-audio map (83te):
 #   pro-output-0 / pro-input-1  = 3.5mm AUX headset
@@ -87,26 +88,14 @@ pick_sink() {
     fi
   done < <(list_sinks | rg 'usb-Synaptics_Lenovo_USB-C_Wired_In-Ear.*analog-stereo' || true)
 
-  # 3) AUX 3.5mm headset — Jack Out (pro-output-0), only when jack is live
-  if aux_jack_plugged; then
-    if sink_exists "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-0"; then
-      echo "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-0"
-      return 0
-    fi
-  fi
-
-  # 4) Built-in speakers (pro-output-2 preferred; legacy pro-output-0 only if no jack map)
+  # 3) Built-in speakers (pro-output-2). Do not fall through to Jack Out.
   if sink_exists "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-2"; then
     echo "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-2"
     return 0
   fi
-  # Pre-CHG-010 installs only exposed pro-output-0 — treat as last sof sink
-  if sink_exists "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-0"; then
-    echo "alsa_output.pci-0000_00_1f.3-platform-sof_sdw.pro-output-0"
-    return 0
-  fi
   while read -r name; do
     [[ -n "$name" ]] || continue
+    [[ "$name" == *pro-output-0* ]] && continue
     if [[ "$name" == *sof_sdw* ]] && [[ "$name" != *effect_* ]]; then
       echo "$name"
       return 0
@@ -150,22 +139,9 @@ pick_source() {
     return 0
   done < <(list_sources | rg 'usb-Synaptics_Lenovo_USB-C_Wired_In-Ear' || true)
 
-  # 3) AUX headset mic — Jack In (pro-input-1)
-  if aux_mic_jack_plugged; then
-    if source_exists "alsa_input.pci-0000_00_1f.3-platform-sof_sdw.pro-input-1"; then
-      echo "alsa_input.pci-0000_00_1f.3-platform-sof_sdw.pro-input-1"
-      return 0
-    fi
-  fi
-
-  # 4) Built-in dmic (pro-input-10 preferred)
+  # 3) Built-in dmic (pro-input-10). Do not use Jack In.
   if source_exists "alsa_input.pci-0000_00_1f.3-platform-sof_sdw.pro-input-10"; then
     echo "alsa_input.pci-0000_00_1f.3-platform-sof_sdw.pro-input-10"
-    return 0
-  fi
-  # Pre-CHG-010: pro-input-1 was used as "built-in" (actually Jack In)
-  if source_exists "alsa_input.pci-0000_00_1f.3-platform-sof_sdw.pro-input-1"; then
-    echo "alsa_input.pci-0000_00_1f.3-platform-sof_sdw.pro-input-1"
     return 0
   fi
   while read -r name; do

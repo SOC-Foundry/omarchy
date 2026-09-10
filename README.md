@@ -11,11 +11,21 @@ Not the distro. Execute only user-space changes: `~/.config/**` + this repo.
 | Hosts | `p3oos` (desk) · `83te` (Yoga docked) |
 | Session rule | Session *N* = `CHG-00N` (no gaps) |
 | Backup rule | `*.bak.chg00N.<YYYYMMDD-HHMMSS>` before every edit |
-| Next free | **CHG-015** |
+| Next free | **CHG-019** |
+| Reserved | **015** Syncthing (roadmap; not stolen) |
+
+**Live `83te` (2026-09-09)**
+
+| | |
+|---|---|
+| Audio | **017:** P30i → Lenovo USB-C → built-in speakers/dmic → camera. EQ Rock on `effect_input.eq`. **010** sof map only (`pro-2`/`pro-10` = laptop). Do not re-run `chg010-apply.sh`. |
+| USB | **018:** Genesys hub on Type-C port1, own PSU. Camera `3-2.3` · Xbox `3-2.4.1` · Lenovo IEM `3-2.4.3`. Ugreen RJ-45 unused. Anker 13-in-1 stays port0 (desk LAN). **016** = brownout incident. Pioneer DVD parked until a dedicated strip. |
 
 ```bash
 omarchy debug --no-sudo --print
 hyprctl monitors
+~/.local/bin/audio-precedence-follow --print
+fish /data/Development/Projects/socfoundry/omarchy/scripts/chg018-verify.fish
 ```
 
 ---
@@ -56,11 +66,14 @@ hyprctl monitors
 | 2026-07-19 | [007](#chg-007--audio-precedence-config) | Audio Precedence Config | 83te | Applied | Med | WP + EQ · `scripts/chg007-*` |
 | 2026-07-29 | [008](#chg-008--screenshot-config) | Screenshot Config | 83te | Applied | Low | `OMARCHY_SCREENSHOT_DIR` · bind |
 | 2026-08-05 | [009](#chg-009--center-monitor-swap) | Center monitor swap | 83te | Applied | Low | `monitors.conf` layout · primary |
-| 2026-08-05 | [010](#chg-010--aux-desk-headset-in-the-chain) | AUX desk headset | 83te | **Ready** | Med | WP AUX · `scripts/chg010-*` |
+| 2026-08-05 / 09-09 | [010](#chg-010--aux-desk-headset-in-the-chain) | AUX desk headset | 83te | Applied | Med | sof map kept · AUX pick **superseded by 017** |
 | 2026-08-05 ~15:05 | [011](#chg-011--viewsonic-edid-refresh) | ViewSonic EDID refresh | 83te | Applied | Low | ViewSonic `@59.95` |
 | 2026-08-14 | [012](#chg-012--island-enterprise-browser) | Island Enterprise Browser | 83te | Applied | Med | `island-browser-stable` · flags · hypr tag |
 | 2026-08-14 | [013](#chg-013--island-setup) | Island setup | 83te | Applied | Low | `hypr/bindings.conf` Super+Shift+I |
 | 2026-08-27 | [014](#chg-014--snapper-pre-pacman-only-keep-last-2) | Snapper pre-pacman / keep 2 | 83te | Applied | **High** | `docs/chg014-snapper-pacman-policy.md` · `scripts/chg014-*` |
+| 2026-09-08 | [016](#chg-016--usbc-hub-power-cycle) | USB-C hub power-cycle | 83te | **Recovered** | Low | USB `2-4`/`3-2` · `docs/chg016-usbc-hub-power-cycle.md` |
+| 2026-09-09 | [017](#chg-017--three-tier-audio-failover) | Three-tier audio failover | 83te | Applied | Med | WP precedence · drop AUX from pick |
+| 2026-09-09 | [018](#chg-018--second-usbc-hub-as-built) | Second USB-C hub as-built | 83te | Applied | Low | Genesys hub PSU · camera/Xbox/Lenovo · `docs/chg018-*` |
 
 ---
 
@@ -412,7 +425,8 @@ bash scripts/chg014-backout.sh
 | CHG | Status |
 |-----|--------|
 | 007 | Applied |
-| 010 | **Ready** — run apply |
+| 010 | Applied · sof map · AUX pick superseded by 017 |
+| 017 | Applied · three-tier failover |
 
 ---
 
@@ -426,8 +440,8 @@ bash scripts/chg014-backout.sh
 | **Challenge** | BT/USB/built-in fight for default; need stable rank + EQ re-glue. |
 | **Paths** | `config/wireplumber/` · `config/audio-eq/` · `bin/audio-precedence-*` · `scripts/chg007-*` |
 
-**Order (007 baseline)** P30i → Lenovo USB-C → built-in → camera  
-**(010 current target)** P30i → Lenovo → **AUX** → built-in → camera
+**Order (007 / 017 live)** P30i → Lenovo USB-C → built-in → camera  
+**(010)** sof map + AUX in chain — **017** dropped AUX from automatic failover
 
 **Execute**
 
@@ -450,24 +464,24 @@ bash scripts/chg007-backout.sh --soft   # EQ + watcher only
 
 ## CHG-010 — AUX desk headset in the chain
 
-> `10` · **Ready** · 2026-08-05 · `83te` · Med · `docs/chg010-aux-desk-headset.md`
+> `10` · Applied · 2026-08-05 / 2026-09-09 · `83te` · Med · `docs/chg010-aux-desk-headset.md`  
+> **Live failover is [017](#chg-017--three-tier-audio-failover).** 010’s sof map remains; do not re-run `chg010-apply.sh`.
 
 | | |
 |---|---|
-| **Objective** | Permanently plugged AUX ranks after Lenovo, before built-in; fix sof pro-audio map. |
+| **Objective** | Fix sof pro-audio map (`pro-2`/`pro-10` = speakers/dmic). Originally also ranked AUX after Lenovo. |
 | **Challenge** | AUX is same sof card as speakers: `pro-output-0` = Jack Out (not speakers); `pro-output-2` = speakers; `pro-input-1` = jack mic; `pro-input-10` = dmic. |
 | **Paths** | `config/wireplumber/.../50-device-precedence.conf` · `bin/audio-precedence-follow` · `scripts/chg010-*` |
 
-**Priorities** 2500 P30i · 1500 Lenovo · **1000 AUX** · 400 built-in · 50 camera
+**Map (still live)** `pro-0/1` jack · `pro-2/10` laptop  
+**Pick order** 010 put AUX at 1000 — **017 disabled jack nodes** (P30i → Lenovo → built-in)
 
 **Execute**
 
 ```bash
-cd /data/Development/Projects/socfoundry/omarchy
-bash scripts/chg010-apply.sh
-fish scripts/chg010-verify.fish
-~/.local/bin/audio-precedence-follow --print
-amixer -c sofsoundwire cget name='Headphone Jack'
+# Do not apply 010 now — it would restore AUX failover.
+# Sof map + three-tier pick: scripts/chg017-apply.sh
+fish scripts/chg017-verify.fish
 ```
 
 **Backout**
@@ -475,6 +489,36 @@ amixer -c sofsoundwire cget name='Headphone Jack'
 ```bash
 bash scripts/chg007-backout.sh          # prefers *.bak.chg010.* then chg007
 bash scripts/chg007-backout.sh --soft
+```
+
+---
+
+## CHG-017 — Three-tier audio failover
+
+> `17` · Applied · 2026-09-09 · `83te` · Med · [docs/chg017-three-tier-audio-failover.md](docs/chg017-three-tier-audio-failover.md)
+
+| | |
+|---|---|
+| **Objective** | Failover is P30i → Lenovo USB-C → built-in speakers/dmic. Unplug USB-C → laptop, not 3.5mm AUX. |
+| **Challenge** | CHG-010 kept the correct sof map but ranked AUX (jack) above speakers. Jack sense is often on at the desk, so USB-C unplug landed on AUX. |
+| **Paths** | `config/wireplumber/.../50-device-precedence.conf` · `bin/audio-precedence-follow` · `scripts/chg017-*` |
+
+**Execute**
+
+```bash
+cd /data/Development/Projects/socfoundry/omarchy
+bash scripts/chg017-apply.sh
+fish scripts/chg017-verify.fish
+~/.local/bin/audio-precedence-follow --print
+# wpctl status → Built-in Speakers, no AUX Headset
+```
+
+**Backout**
+
+```bash
+# restore pre-017 WP drop-ins:
+#   ~/.config/wireplumber/wireplumber.conf.d.bak.chg017.<ts>
+systemctl --user restart wireplumber.service
 ```
 
 ---
@@ -540,6 +584,15 @@ rm -f ~/Pictures/Screenshots
 
 ---
 
+# VII · USB / Peripherals
+
+| CHG | Status |
+|-----|--------|
+| 016 | **Recovered** · incident |
+| 018 | Applied · as-built wiring + PSU |
+
+---
+
 ## CHG-012 — Island Enterprise Browser
 
 > `12` · Applied · 2026-08-14 · `83te` · Med · `docs/chg012-island-enterprise-browser.md`
@@ -600,13 +653,70 @@ bash scripts/chg013-backout.sh
 
 ---
 
+## CHG-016 — USB-C hub power-cycle
+
+> `16` · **Recovered** · 2026-09-08 · `83te` · Low · [docs/chg016-usbc-hub-power-cycle.md](docs/chg016-usbc-hub-power-cycle.md)
+
+| | |
+|---|---|
+| **Objective** | Find why the new USB-C hub (camera, DVD, Lenovo USB-C headset, Xbox pad) is power-cycling. |
+| **Challenge** | Anker USB-C hub was daisy-chained downstream of **both** Ugreen and the new Genesys hub; new/Ugreen were not on dedicated PSUs. USB `EPROTO` (`err = -71`) + nested-hub power-cycle ~every 2 s, 19:01–19:22. No block I/O. Dedicated PSU on both hubs stopped the storm. |
+| **Paths** | `usb 2-4` / `usb 3-2` (PCH xHCI `00:14.0`) · Type-C `port1` · `docs/chg016-usbc-hub-power-cycle.md` |
+
+**Execute**
+
+```bash
+# Done by operator: dedicated PSU on Ugreen + new hub; Anker USB-C hub
+# pulled off that daisy-chain. Storm last power-cycle 19:22:18.
+journalctl -k --since '19:22:21' | grep -E 'err = -71|power cycle|I/O error'
+# as-built / standing policy: CHG-018
+fish scripts/chg018-verify.fish
+```
+
+**Backout**
+
+```bash
+# Unplug the new hub. Anker dock / Keychron / trackball are on other buses.
+```
+
+---
+
+## CHG-018 — Second USB-C hub as-built
+
+> `18` · Applied · 2026-09-09 · `83te` · Low · [docs/chg018-second-usbc-hub-as-built.md](docs/chg018-second-usbc-hub-as-built.md)  
+> Incident: [016](#chg-016--usbc-hub-power-cycle).
+
+| | |
+|---|---|
+| **Objective** | Standing wiring + power for the second (Genesys) USB-C hub: camera, Lenovo USB-C headset, Xbox pad. Own PSU. No extra hub daisy-chain. |
+| **Challenge** | Bus-power + Anker USB-C downstream of Ugreen **and** this hub caused 016’s reset storm. DVD still needs a dedicated strip. Ugreen RJ-45 is unused. |
+| **Paths** | Yoga Type-C port1 `usb 2-4`/`3-2` · `docs/chg018-second-usbc-hub-as-built.md` · `scripts/chg018-verify.fish` |
+
+**Execute**
+
+```bash
+# Hardware: dedicated PSU on Ugreen + Genesys hub.
+# Loads on Genesys: camera 3-2.3 · Xbox 3-2.4.1 · Lenovo IEM 3-2.4.3
+# Not on this hub: Pioneer DVD (until custom strip)
+cd /data/Development/Projects/socfoundry/omarchy
+fish scripts/chg018-verify.fish
+```
+
+**Backout**
+
+```bash
+# Unplug the Genesys hub from Yoga port1. Anker dock stays.
+```
+
+---
+
 ## Roadmap
 
 | ID | Topic |
 |----|--------|
 | **015** | Syncthing mesh `/data/Development/Projects` (a8oos · p3oos · 83te) |
-| **016+** | Keybinds · workspaces · themes · waybar |
+| **019+** | Keybinds · workspaces · themes · waybar |
 
 ---
 
-<sub>Last applied **014** · staged **010** (`scripts/chg010-apply.sh`) · verbose history: `README.md.bak.verbose.*`</sub>
+<sub>Last applied **018** · audio live **017** · verbose history: `README.md.bak.verbose.*`</sub>

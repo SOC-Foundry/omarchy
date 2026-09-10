@@ -115,47 +115,19 @@ if test -n "$p30i_pri" -a -n "$lenovo_pri"
 else
     info "skip P30i/Lenovo priority compare (device missing)"
 end
-if test -n "$lenovo_pri" -a -n "$aux_pri"
-    if test $lenovo_pri -gt $aux_pri
-        ok "Lenovo priority ($lenovo_pri) > AUX ($aux_pri)"
-    else
-        bad "Lenovo priority ($lenovo_pri) should be > AUX ($aux_pri)"
-    end
-else
-    info "skip Lenovo/AUX priority compare (device missing)"
-end
-if test -n "$aux_pri" -a -n "$builtin_pri"
-    if test $aux_pri -gt $builtin_pri
-        ok "AUX priority ($aux_pri) > Built-in ($builtin_pri)"
-    else
-        bad "AUX priority ($aux_pri) should be > Built-in ($builtin_pri)"
-    end
-else if test -n "$lenovo_pri" -a -n "$builtin_pri" -a -z "$aux_pri"
+if test -n "$lenovo_pri" -a -n "$builtin_pri"
     if test $lenovo_pri -gt $builtin_pri
-        ok "Lenovo priority ($lenovo_pri) > Built-in ($builtin_pri) (no AUX node)"
+        ok "Lenovo priority ($lenovo_pri) > Built-in ($builtin_pri)"
     else
         bad "Lenovo priority ($lenovo_pri) should be > Built-in ($builtin_pri)"
     end
 else
-    info "skip AUX/Built-in priority compare (device missing)"
+    info "skip Lenovo/Built-in priority compare (device missing)"
 end
-
-# Expected nick labels after CHG-010
 if test -n "$aux_pri"
-    set -l aux_nick ""
-    for id in (wpctl status 2>/dev/null | string match -r '^\s+\*?\s+\d+\.' | string replace -r '^\s+\*?\s+(\d+)\..*' '$1')
-        set -l insp (wpctl inspect $id 2>/dev/null)
-        set -l nname (echo $insp | string match -r 'node.name = "[^"]+"' | string replace -r 'node.name = "([^"]+)"' '$1')
-        if string match -q '*sof_sdw.pro-output-0' $nname
-            set aux_nick (echo $insp | string match -r 'node.nick = "[^"]+"' | string replace -r 'node.nick = "([^"]+)"' '$1')
-            break
-        end
-    end
-    if string match -qi '*AUX*' $aux_nick
-        ok "pro-output-0 nick is AUX ($aux_nick)"
-    else
-        bad "pro-output-0 nick should be AUX Headset, got: $aux_nick"
-    end
+    bad "AUX jack sink still in graph (priority $aux_pri) — CHG-017 should disable pro-output-0"
+else
+    ok "AUX jack sink not in failover graph"
 end
 echo
 
@@ -163,7 +135,7 @@ echo "--- default source (mic precedence) ---"
 set -l def_src (pactl get-default-source 2>/dev/null)
 info "default source: $def_src"
 if string match -q '*Camera*' $def_src; or string match -q '*Sonix*' $def_src
-    bad "default source is camera mic — should prefer Lenovo / P30i / AUX / built-in"
+    bad "default source is camera mic — should prefer Lenovo / P30i / built-in"
 else
     ok "default source is not camera"
 end
