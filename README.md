@@ -1,722 +1,271 @@
-# omarchy
+# Omarchy
 
-CLI agent runbook · Omarchy (Arch + Hyprland) operator config ledger.
+This repository is the control for an agentic bare-metal install of [Omarchy](https://omarchy.org). A new laptop or image, about every six months, is a new generation. The agent reads the current release notes, applies the outcomes that must hold, and leaves a dated record of how that generation got there. The record replaces a golden image.
 
-Not the distro. Execute only user-space changes: `~/.config/**` + this repo.  
-**Never** edit `~/.local/share/omarchy/`.
+User space only: `~/.config/**` and this repo. The distro tree under `~/.local/share/omarchy/` is left alone.
+
+The Outcomes Tracker is the catalog. Everything under it is history in service of those outcomes: what changed, what the generation learned, and what the next image inherits. A problem is an opportunity to improve the control. The dated row is that improvement, written down while it is still fresh.
+
+## How a generation is bootstrapped
+
+1. Read the release notes for the Omarchy version on the machine. A six-month jump moves the window manager, the terminal, the boot menu, and the installer. An older procedure is evidence. It is not a command.
+2. Run `fish scripts/chg020-status.fish`. `OK` is an outcome that already holds. `SKIP` is hardware this machine does not have. `GAP` is the work left. `FAIL` is an outcome that used to hold and is ready for a fresh look.
+3. Meet each gap with a path written for this disk, this audio device, and this config language. Record the path as the next change.
+4. Privileged steps run in a terminal the operator can see. The operator approves them. The agent does not hold those secrets, and it does not commit or push.
+5. When a step can be classified, a small analyzer does that in the same session and continues. The field generation's data volume is the example below.
+
+Git stays with the operator: stage, sign, push. A signing denial is respected.
+
+## Generations
+
+Roles, not machine names. The same outcomes, a new path each time.
+
+- **2026-07-05 · Desk and Dock.** First ledger. A desk tower and a docked laptop. Hyprland still used `monitors.conf`. Alacritty was the terminal. Starship was the stock prompt. Projects moved onto their own encrypted volume.
+- **2026-08-05 · Dock.** The docked desk matured. The center panel changed. The laptop audio map was corrected. A wired headset was tried, then kept off the automatic failover list.
+- **2026-08-14 – 2026-09-09 · Dock.** Work browser, snapshot policy, USB-C power, three-tier audio. Last dock as-built is 2026-09-09.
+- **2026-11-09 – 2026-11-10 · Field.** An undocked laptop on older hardware and Omarchy 4.5. Hyprland is Lua. Super+Return is Foot. Audio is standard analog. One encrypted root, sized into an OS volume and a project volume during this generation. Same outcomes. A different path.
+
+## Rules
 
 | | |
 |---|---|
-| Kit | `/data/Development/Projects/socfoundry/omarchy/` |
-| Hosts | `p3oos` (desk) · `83te` (Yoga docked) |
-| Session rule | Session *N* = `CHG-00N` (no gaps) |
-| Backup rule | `*.bak.chg00N.<YYYYMMDD-HHMMSS>` before every edit |
-| Next free | **CHG-019** |
-| Reserved | **015** Syncthing (roadmap; not stolen) |
-
-**Live `83te` (2026-09-09)**
-
-| | |
-|---|---|
-| Audio | **017:** P30i → Lenovo USB-C → built-in speakers/dmic → camera. EQ Rock on `effect_input.eq`. **010** sof map only (`pro-2`/`pro-10` = laptop). Do not re-run `chg010-apply.sh`. |
-| USB | **018:** Genesys hub on Type-C port1, own PSU. Camera `3-2.3` · Xbox `3-2.4.1` · Lenovo IEM `3-2.4.3`. Ugreen RJ-45 unused. Anker 13-in-1 stays port0 (desk LAN). **016** = brownout incident. Pioneer DVD parked until a dedicated strip. |
-
-```bash
-omarchy debug --no-sudo --print
-hyprctl monitors
-~/.local/bin/audio-precedence-follow --print
-fish /data/Development/Projects/socfoundry/omarchy/scripts/chg018-verify.fish
-```
-
----
-
-## Agent protocol
-
-1. Read **Objective · Challenge · Paths · Execute · Backout** for the target CHG.
-2. Backup touched files with the backup rule above.
-3. Run **Execute**. Stop on failure; do not invent package reverts unless the CHG says so.
-4. Confirm with the one-line checks in **Execute** / verify commands.
-5. On failure: run **Backout**.
-6. New work → next free CHG; append chapter; add **Changelog** row; keep this format.
+| Kit once `/data` exists | `/data/Development/Projects/socfoundry/omarchy/` |
+| Record id | Session *N* is `CHG-00N`. No gaps. **015** is reserved for project sync. |
+| Next free | **CHG-023** |
+| Data partition | 60% of that machine's disk, strictly over half. The OS keeps the rest. |
+| Backup | `*.bak.chg00N.<YYYYMMDD-HHMMSS>` before every edit |
+| Git | The operator stages, signs, and pushes. |
 
 | Surface | Path |
 |---------|------|
-| Hyprland | `~/.config/hypr/` |
+| Hyprland (4.5) | `~/.config/hypr/*.lua` |
+| Hyprland (2026-07) | `~/.config/hypr/monitors.conf` · `bindings.conf` |
+| Foot | `~/.config/foot/foot.ini` |
 | Alacritty | `~/.config/alacritty/alacritty.toml` |
 | fish / Tide | `~/.config/fish/` |
 | WirePlumber / EQ | `~/.config/wireplumber/` · `~/.config/audio-eq/` |
 | Scripts | `scripts/chg00N-*` |
-| Formal notes | `docs/chg00N-*.md` (optional detail) |
+| Notes | `docs/chg00N-*.md` |
+
+## Outcomes Tracker
+
+Checked on the field laptop the morning of 2026-11-10, before the volume: 20 OK, 4 skip, 1 gap, 0 fail. The gap was the project volume. That gap closed the same morning.
+
+| Outcome | Where it holds | This generation |
+|---------|----------------|-----------------|
+| [Displays](#displays) | Docked desk has a named layout. Field keeps the internal panel | Desk layout stays on the desk |
+| [Shell](#shell) | fish + Tide v6, black path text | Login shell is fish |
+| [Terminal startup](#terminal-startup) | A one-shot snapshot, then fish, landing in Projects | Repo script, Foot on 4.5 |
+| [Projects volume](#projects-volume) | Encrypted XFS at `/data`, home path is a symlink | Field volume is mounted. About 287 GiB. Next boot confirms the unlock |
+| [Project sync](#project-sync) | One folder, LAN, no server | Reviewed and held until the project path is `/data` |
+| [Snapshots](#snapshots) | One snapshot before pacman, keep 2, boot menu matches | Holds, including the 4.5 menu cap |
+| [Audio](#audio) | Headset, then the laptop, through a Rock EQ | Field falls through to analog. The dock map stays on the dock |
+| [Screenshots](#screenshots) | On the data volume once it exists | Field shots now follow `/data` |
+| [Work browser](#work-browser) | Work browser installed, Chrome stays the default | Field waits on the vendor package |
+| [USB power](#usb-power) | Each hub on its own supply | Dock wiring. Not this laptop |
+| [Generations](#generations) | How a whole machine is brought up | The next image starts at the status script |
 
 ---
-
-<a id="chg-log"></a>
-<a id="chg-register"></a>
 
 ## Changelog
 
-| Applied | CHG | Title | Host | Status | Risk | Surfaces |
-|---------|-----|-------|------|--------|------|----------|
-| 2026-07-05 | [001](#chg-001--the-desk-in-order) | The desk in order | p3oos | Applied | Low | `hypr/monitors.conf` |
-| 2026-07-06 | [002](#chg-002--a-prompt-worth-looking-at) | A prompt worth looking at | p3oos · 83te | Applied | Low | fish · Tide · Fisher |
-| 2026-07-06 | [003](#chg-003--alacritty-startup) | Alacritty startup | both | Applied | Low | `alacritty.toml` |
-| 2026-07-06 / 07-09 | [004](#chg-004--projects-on-their-own-disk) | Projects on their own disk | p3oos · 83te | Applied | **High** | LUKS/XFS `/data` · `scripts/chg004-*` |
-| 2026-07-08 | [005](#chg-005--readable-paths) | Readable paths | both | Applied | Low | Tide pwd colors |
-| 2026-07-08 | [006](#chg-006--land-in-projects) | Land in Projects | both | Applied | Low | `alacritty.toml` cwd |
-| 2026-07-19 | [007](#chg-007--audio-precedence-config) | Audio Precedence Config | 83te | Applied | Med | WP + EQ · `scripts/chg007-*` |
-| 2026-07-29 | [008](#chg-008--screenshot-config) | Screenshot Config | 83te | Applied | Low | `OMARCHY_SCREENSHOT_DIR` · bind |
-| 2026-08-05 | [009](#chg-009--center-monitor-swap) | Center monitor swap | 83te | Applied | Low | `monitors.conf` layout · primary |
-| 2026-08-05 / 09-09 | [010](#chg-010--aux-desk-headset-in-the-chain) | AUX desk headset | 83te | Applied | Med | sof map kept · AUX pick **superseded by 017** |
-| 2026-08-05 ~15:05 | [011](#chg-011--viewsonic-edid-refresh) | ViewSonic EDID refresh | 83te | Applied | Low | ViewSonic `@59.95` |
-| 2026-08-14 | [012](#chg-012--island-enterprise-browser) | Island Enterprise Browser | 83te | Applied | Med | `island-browser-stable` · flags · hypr tag |
-| 2026-08-14 | [013](#chg-013--island-setup) | Island setup | 83te | Applied | Low | `hypr/bindings.conf` Super+Shift+I |
-| 2026-08-27 | [014](#chg-014--snapper-pre-pacman-only-keep-last-2) | Snapper pre-pacman / keep 2 | 83te | Applied | **High** | `docs/chg014-snapper-pacman-policy.md` · `scripts/chg014-*` |
-| 2026-09-08 | [016](#chg-016--usbc-hub-power-cycle) | USB-C hub power-cycle | 83te | **Recovered** | Low | USB `2-4`/`3-2` · `docs/chg016-usbc-hub-power-cycle.md` |
-| 2026-09-09 | [017](#chg-017--three-tier-audio-failover) | Three-tier audio failover | 83te | Applied | Med | WP precedence · drop AUX from pick |
-| 2026-09-09 | [018](#chg-018--second-usbc-hub-as-built) | Second USB-C hub as-built | 83te | Applied | Low | Genesys hub PSU · camera/Xbox/Lenovo · `docs/chg018-*` |
+| Applied | CHG | Title | Where | Status | Risk |
+|---------|-----|-------|-------|--------|------|
+| 2026-07-05 | 001 | Desk layout | Desk | Applied | Low |
+| 2026-07-06 | 002 | A prompt worth looking at | Desk · Dock | Applied | Low |
+| 2026-07-06 | 003 | Terminal startup snapshot | both | Applied | Low |
+| 2026-07-06 / 07-09 | 004 | Projects on their own disk | Desk · Dock | Applied | **High** |
+| 2026-07-08 | 005 | Readable paths | both | Applied | Low |
+| 2026-07-08 | 006 | Land in Projects | both | Applied | Low |
+| 2026-07-19 | 007 | Audio precedence | Dock | Applied | Med |
+| 2026-07-29 | 008 | Screenshots on the data volume | Dock | Applied | Low |
+| 2026-08-05 | 009 | Center panel | Dock | Applied | Low |
+| 2026-08-05 / 09-09 | 010 | Laptop audio map | Dock | Applied | Med |
+| 2026-08-05 | 011 | Panel mode matches the dock | Dock | Applied | Low |
+| 2026-08-14 | 012 | Work browser package | Dock | Applied | Med |
+| 2026-08-14 | 013 | Work browser chords | Dock | Applied | Low |
+| 2026-08-27 | 014 | Snapshots: pre-pacman, keep 2 | Dock | Applied | **High** |
+| 2026-09-08 | 016 | USB-C power recovered | Dock | Applied | Low |
+| 2026-09-09 | 017 | Three-tier audio | Dock | Applied | Med |
+| 2026-09-09 | 018 | Hub wiring as-built | Dock | Applied | Low |
+| 2026-11-10 | 019 | Field bring-up | Field | Applied | Med |
+| 2026-11-10 | 020 | Provisioning control | Field | Applied | Low |
+| 2026-11-10 | 021 | Outcome catalog | repo | Applied | Low |
+| 2026-11-10 | 022 | Data volume from this disk | Field | Applied on the live session | **High** |
+
+015 is reserved for project sync. It is not skipped. It waits until the project path is the data volume and a boot has confirmed the mount.
 
 ---
 
-# I · Multi Display Config
-
-| CHG | Status |
-|-----|--------|
-| 001 · 009 · 011 | Applied · live desk = 009 layout + 011 Hz |
-
----
+# Displays
 
-## CHG-001 — The desk in order
-
-> `01` · Applied · 2026-07-05 · `p3oos` · Low
-
-| | |
-|---|---|
-| **Objective** | Map three 1080p panels left→center→right to match the physical desk; `GDK_SCALE=1`. |
-| **Challenge** | Stock `monitor=,preferred,auto,auto` + `GDK_SCALE,2` ignores desk order and double-scales 1080p. |
-| **Paths** | `~/.config/hypr/monitors.conf` |
-
-**Execute**
-
-```bash
-cp ~/.config/hypr/monitors.conf ~/.config/hypr/monitors.conf.bak.chg001.$(date +%Y%m%d-%H%M%S)
-```
-
-```ini
-# ~/.config/hypr/monitors.conf  (p3oos historical baseline — ports may differ)
-env = GDK_SCALE,1
-monitor = DP-4, 1920x1080@60, 0x0, 1
-monitor = DP-3, 1920x1080@60, 1920x0, 1
-monitor = DP-2, 1920x1080@60, 3840x0, 1
-```
-
-```bash
-hyprctl reload && hyprctl configerrors && hyprctl monitors
-# expect positions 0x0, 1920x0, 3840x0
-```
+A docked desk matches the panels on the desk. An undocked laptop keeps the internal panel. A layout belongs to the machine that has those panels.
 
-**Backout**
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-07-05 | Desk | Three 1080p panels, left to right, scale 1 | Named the outputs and set the offsets. The stock "preferred, auto" line and a doubled UI scale were fighting the desk. |
+| 2026-08-05 | Dock | Center panel became a wider QHD display | Matched panels by their identity, not by the port number the dock assigns this week. Recomputed the row. Primary moved to the center. |
+| 2026-08-05 | Dock | Refresh follows the mode the dock publishes | The advertised rate and the mode on this dock path were different. Driving the published mode keeps the picture through sleep. |
+| 2026-11-09 | Field | Omarchy 4.5 configures displays in Lua | The internal panel stays stock. The desk files stay on the desk. |
 
-```bash
-cp ~/.config/hypr/monitors.conf.bak.chg001.YYYYMMDD-HHMMSS ~/.config/hypr/monitors.conf
-hyprctl reload
-# stock: env = GDK_SCALE,2  +  monitor=,preferred,auto,auto
-```
+# Shell
 
----
+The login shell is fish. Tide v6 draws a Rainbow prompt with black path text. Bash and Starship stay installed for anything that still expects them.
 
-## CHG-009 — Center monitor swap
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-07-06 | Desk · Dock | Long sessions needed a prompt that shows the path, the clock, and when a command finishes | Fisher, Tide v6, the `done` notifier, Rainbow, two lines, a 24-hour clock. Login shell switched to fish. |
+| 2026-07-08 | both | Path text on the Rainbow prompt was hard to read | Path colors set to black. One change, every later machine inherits it. |
+| 2026-11-10 | Field | Omarchy 4.5 does not ship fish. Privileged install needs an operator terminal | The operator approved the install in a visible window. Fish 4.9.3, Tide pinned at v6 so the July flags still apply, path text black. New terminals pick it up immediately. |
 
-> `09` · Applied · 2026-08-05 · `83te` docked · Low  
-> Layout/primary current. **Hz superseded by [011](#chg-011--viewsonic-edid-refresh).**
+# Terminal startup
 
-| | |
-|---|---|
-| **Objective** | Replace center Samsung 1080p with ViewSonic VX3276-QHD; recompute offsets; primary on ViewSonic. |
-| **Challenge** | Wider center (2560) invalidates old X offsets; dock renames `DP-N` — use `desc:`. |
-| **Paths** | `~/.config/hypr/monitors.conf` · note: `docs/chg009-center-monitor-swap.md` |
-
-**Execute**
-
-```bash
-hyprctl monitors   # note desc: + availableModes only
-cp ~/.config/hypr/monitors.conf ~/.config/hypr/monitors.conf.bak.chg009.$(date +%Y%m%d-%H%M%S)
-```
-
-```ini
-env = GDK_SCALE,1
-# widths 1920+2560+1920 → 0, 1920, 4480
-monitor = desc:Sceptre Tech Inc Sceptre F27, 1920x1080@60, 0x0, 1
-monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@59.95, 1920x0, 1
-monitor = desc:AOC 27E2UA, 1920x1080@60, 4480x0, 1
-monitor = eDP-1, 1920x1200@60, 2560x1440, 1.5
-monitor = , preferred, auto, 1
-workspace = 1, monitor:desc:ViewSonic Corporation VX3276-QHD, default:true
-cursor {
-    default_monitor = desc:ViewSonic Corporation VX3276-QHD
-}
-```
-
-```bash
-hyprctl reload && hyprctl configerrors && hyprctl monitors
-hyprctl workspacerules
-# expect: 0x0, 1920x0, 4480x0, eDP 2560x1440; ViewSonic @59.95
-```
+Super+Return prints a one-shot picture of the machine, then an interactive fish. A new terminal starts in Projects. A terminal opened from a directory the operator is already in stays there.
 
-**Backout**
-
-```bash
-cp ~/.config/hypr/monitors.conf.bak.chg009.YYYYMMDD-HHMMSS ~/.config/hypr/monitors.conf
-hyprctl reload
-```
-
----
-
-## CHG-011 — ViewSonic EDID refresh
-
-> `11` · Applied · 2026-08-05 ~15:05 · `83te` · Low  
-> Supersedes 009 Hz only. `docs/chg011-viewsonic-edid-refresh.md`
+On 4.5 the terminal is Foot, and the script lives in this repo (`bin/omarchy-term-login`). The data volume wins when it is mounted. Otherwise the home project tree is the landing spot.
 
-| | |
-|---|---|
-| **Objective** | Stop ViewSonic **Out of Range**; drive only EDID-listed QHD mode. |
-| **Challenge** | Marketing 75 Hz; EDID on this dock path lists only `2560x1440@59.95Hz`. Forcing `@74.93` breaks OSD + post-sleep. **Do not revert packages.** |
-| **Paths** | `~/.config/hypr/monitors.conf` · bak `…bak.chg011.20260805-150528` |
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-07-06 | both | Every new window needed a snapshot without repeating it inside the same window | The terminal starts fish, prints the snapshot, then replaces itself with an interactive fish. |
+| 2026-07-08 | both | After the data volume, new terminals still opened at home | The startup changes to the project tree before the interactive shell. |
+| 2026-11-10 | Field | Foot, and a working directory inherited from the previous terminal | The wrapper changes directory only when the start location is home or the filesystem root. The script is in the repo, so the next image does not depend on a file that exists only on one laptop. |
 
-**Execute**
+# Projects volume
 
-```bash
-hyprctl monitors   # confirm availableModes includes 2560x1440@59.95Hz only for QHD
-cp ~/.config/hypr/monitors.conf ~/.config/hypr/monitors.conf.bak.chg011.$(date +%Y%m%d-%H%M%S)
-# set ViewSonic line:
-# monitor = desc:ViewSonic Corporation VX3276-QHD, 2560x1440@59.95, 1920x0, 1
-hyprctl reload && hyprctl configerrors
-hyprctl monitors   # ViewSonic ≈ 2560x1440@59.95
-```
+The OS and the project tree are different encrypted volumes. Reinstalling the OS leaves Projects in place. `~/Development/Projects` is a symlink to `/data/Development/Projects`.
 
-**Backout**
+The size is a rule, not a constant from the first laptop. The data partition is 60% of the disk in the machine, aligned so it stays strictly over half. The OS keeps the rest, with room above what is already used and a floor so the system volume cannot be starved. On the field laptop that is about 287 GiB for projects and a 174 GiB OS filesystem inside a 179 GiB encrypted mapping. The first generation's fixed end-of-partition figure stays in the July record. It is not the formula.
 
-```bash
-cp ~/.config/hypr/monitors.conf.bak.chg011.YYYYMMDD-HHMMSS ~/.config/hypr/monitors.conf
-hyprctl reload
-# restores @74.93 → Out of Range on this link
-```
+**Field, 2026-11-10.** The volume is mounted. Projects and screenshots point at it. The previous project tree is kept beside the symlink until a reboot has shown the unlock and the automount. That reboot is the acceptance test. The live session already passed its own verify.
 
----
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-07-06 | Desk | The installer ships one encrypted root. Projects had to outlive a reinstall | Live shrink of the OS volume, then a second encrypted XFS volume. Home path becomes a symlink. |
+| 2026-07-09 | Dock | Same outcome, a smaller OS budget than the tower | The July scripts, with sizes taken from that disk. |
+| 2026-11-10 | Field | A third disk size, Omarchy 4.5, and a live encrypted root that had to stay bootable the whole time | The section below. |
 
-# II · Fish Terminal Config
+### Finishing the field volume
 
-| CHG | Status |
-|-----|--------|
-| 002 · 003 · 005 · 006 | Applied |
+The field disk is a single NVMe of about 477 GiB. The installer had already put the whole OS in one encrypted btrfs volume: boot, root, home, logs, and the package cache as subvolumes of that one filesystem. The outcome required a second encrypted volume of more than half the disk, with the machine left running the entire time.
 
----
+The safe order is the whole method. Nothing later in the list runs until the step before it has landed.
 
-## CHG-002 — A prompt worth looking at
+1. Shrink the filesystem first. The swap file on that filesystem is turned off for the resize and put back after. zram stays. The field filesystem moved to 174 GiB at 07:35 and the machine kept running. The encrypted mapping was still the installer's size, so the partition table was not touched. That gap is a bootable state on purpose.
+2. Read the volume header before choosing a size. Omarchy 4.5 formats new installs with 4096-byte encryption sectors. The resize is specified so the result lands on that alignment. The volume key stays with the running mapping, which is why the shrink is an operator step in a visible terminal. A flag that would drop the key is refused by the tool. That refusal is correct: the machine is still using the volume.
+3. Shrink the encrypted mapping only after that check, and only while the operator is at the keyboard. If the mapping is still larger than the target, stop. The partition is not moved.
+4. Then, and only then, move the partition boundary, create the data partition, format it, open it, mount it, and point the home path at the new tree. The old tree stays until the next boot looks right.
 
-> `02` · Applied · 2026-07-06 · `p3oos` · `83te` · Low
+### What the shrink taught the control
 
-| | |
-|---|---|
-| **Objective** | Login shell = fish + Tide v6 Rainbow + `done`; keep bash/Starship available. |
-| **Challenge** | Stock Starship is thin for heavy terminal work. |
-| **Paths** | `~/.config/fish/` · Alacritty shell (later 003/006) |
+The morning of 2026-11-10 was a loop of privileged windows, and the loop was the lesson. Each window was the same plan. Each one returned before the encrypted mapping moved, with the filesystem already at 174 GiB and the partition table untouched. Repeating the window showed that the next generation needs one shell that can classify a result and continue. That is the analyzer.
 
-**Execute**
+| When | What we learned | What the next generation inherits |
+|------|-----------------|-----------------------------------|
+| 07:32 | The mount table prints the root as a path plus a subvolume suffix. That string is not a device node. A pipeline that stops on the first error ends before it can say why, which is why a device query can exit 32 with an empty explanation. | Find the partition from the device-mapper slave. Log the reason in the same step. |
+| 07:35 | The filesystem can move to 174 GiB, with the swap file off only for that resize, while the encrypted mapping stays at the installer's size. | A bootable gap is a feature. The partition waits until the mapping has actually shrunk. |
+| 07:39 – 08:28 | An empty trace can mean the step ran and could not write. On this kernel, root cannot append to a file the desktop user just created in `/tmp`. | Root logs live in the home directory. The script creates them. |
+| Through 09:51 | A privileged prompt lasts five minutes by default. A window opened between sittings closes on that timer, and the next sitting starts from the top. | A high-risk sitting keeps the prompt valid for an hour, so one session can finish. |
+| 10:30 | Classification belongs in the same root shell as the work. An operator at the keyboard, a result the function can name, and a handoff only after the mapping matches the target. | `scripts/chg022-heal.sh`. Confirm the volume, shrink the mapping to 179 GiB, then partition, format, mount, point the project path and the screenshots, and verify. The partition does not move unless the mapping shrunk. |
 
-```bash
-cp -a ~/.config/fish ~/.config/fish.bak.chg002.$(date +%Y%m%d-%H%M%S)
-yay -S --noconfirm fisher   # or fisher bootstrap
-fish -c 'fisher install ilancosman/tide franciscolourenco/done'
-fish -c 'tide configure --auto --style=Rainbow --prompt_colors="16 colors" \
-  --show_time="24-hour format" --rainbow_prompt_separators=Angled \
-  --powerline_prompt_heads=Slanted --powerline_prompt_tails=Sharp \
-  --powerline_prompt_style="Two lines, character and frame" \
-  --prompt_connection=Dotted --powerline_right_prompt_frame=Yes \
-  --prompt_spacing=Compact --icons="Many icons" --transient=Yes'
-chsh -s /usr/bin/fish   # re-login
-# keep Omarchy PATH/mise/zoxide in config.fish
-getent passwd $USER | cut -d: -f7   # → /usr/bin/fish
-```
+The same sitting also learned to write the operator's prompt straight to the terminal. A pipe holds a line that has no newline, so the person at the keyboard never sees it. And if the image did not ship the format tools, that sitting installs them and then formats.
 
-**Backout**
+The multi-hour lesson closed in a few minutes. The window exited clean. `/data` was mounted at 10:30.
 
-```bash
-rm -rf ~/.config/fish
-cp -a ~/.config/fish.bak.chg002.YYYYMMDD-HHMMSS ~/.config/fish
-chsh -s /usr/bin/bash
-# or: fish -c 'fisher remove ilancosman/tide franciscolourenco/done'
-```
+Measured on the field laptop after that window. Sizes are the live volumes.
 
----
+| Layer | Result |
+|-------|--------|
+| Disk | one NVMe, about 477 GiB |
+| Boot | 2 GiB, about 140 MiB used |
+| OS filesystem | 174 GiB btrfs, about 25 GiB used, about 149 GiB free. Subvolumes for root, home, logs, and the package cache |
+| Encrypted OS mapping | sized to 179 GiB. 4096-byte sectors, key held with the running mapping |
+| OS partition | about 188 GiB, ending at 190 GiB |
+| Project volume | the rest of the disk, about 287 GiB, which is 60% of this disk. LUKS + XFS, mounted at `/data`. About 282 GiB free. The few gigabytes in use are filesystem metadata |
+| Home path | `~/Development/Projects` is a symlink to `/data/Development/Projects`, set at 10:30 |
+| Previous tree | kept beside the symlink until the reboot acceptance test |
+| Screenshots | home path follows the project tree on `/data` |
 
-## CHG-003 — Alacritty startup
+A container does not get this partition sequence. If the root is not an encrypted mapping, the generation is given a data volume that is already over half of its disk.
 
-> `03` · Applied · 2026-07-06 · Low · extended by 006
+Dated procedures: `scripts/chg004-*` for the first generation, `scripts/chg022-data-volume.sh` and `scripts/chg022-heal.sh` for the field generation. High risk. The reverse of a finished data volume is a restore from backup media, not a casual delete.
 
-| | |
-|---|---|
-| **Objective** | Super+Return: one-shot sys summary then interactive fish. |
-| **Challenge** | Need kernel/net/disk snapshot without typing; must not re-run in same window. |
-| **Paths** | `~/.config/alacritty/alacritty.toml` |
+# Project sync
 
-**Execute**
+The project tree is the same work on every machine that has joined. Sync is LAN-only. There is no central server.
 
-```bash
-cp ~/.config/alacritty/alacritty.toml ~/.config/alacritty/alacritty.toml.bak.chg003.$(date +%Y%m%d-%H%M%S)
-```
+The July plan and the live configuration are both kept. The live file is the one a new machine joins. On 2026-11-10 the dock was reviewed over an administrative login. The package is installed. The service is stopped, which is the intended quiet state. The project folder points at `/data/Development/Projects` and is shared with the active peer. A retired machine is still in the device list and is not on that folder. The field laptop was not added.
 
-```toml
-[terminal]
-osc52 = "CopyPaste"
-shell = { program = "/usr/bin/fish", args = ["-l", "-c", "uname -a && ip -4 -br addr && echo $0 && lsblk -f && fastfetch; exec fish -l"] }
-```
+That sequencing is the outcome. The share path has to be the data volume, and a boot has to prove the mount, before a second machine joins. 015 stays reserved for that join.
 
-*(006 inserts `cd /data/Development/Projects` before `exec fish -l`.)*
+# Snapshots
 
-**Backout**
+Root is snapshotted once, immediately before pacman, and only the last two are kept. The boot menu shows the same two. Hourly timeline snapshots stay off.
 
-```bash
-cp ~/.config/alacritty/alacritty.toml.bak.chg003.YYYYMMDD-HHMMSS ~/.config/alacritty/alacritty.toml
-# or: shell = { program = "/usr/bin/fish", args = ["-l"] }
-```
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-08-27 | Dock | A full timeline is a lesson in copy-on-write. Hundreds of snapshots filled the volume, and ordinary disk tools do not show that use. A quota limit does nothing when quotas are off. A delete that names a missing snapshot stops the whole batch | A pre-pacman hook, keep two, timeline off, cleanup on. A post-update hook puts the limit back if an Omarchy update restores a higher number. The rest were pruned. The next image starts from that policy. |
+| 2026-11-10 | Field | Omarchy 4.5 caps the boot menu from a drop-in, and the main defaults file overrides that drop-in. The July edit replaced a key that was not in the file yet. A check that could not read the boot menu reported zero entries as a pass | Append the key when it is absent. Sync the menu. The status check treats an unreadable menu as skip, and reads the defaults file the account is allowed to read. The menu shows two snapshot entries. |
 
----
+On 4.5 the boot menu also waits about a second and then boots. Holding a key at startup stops on the menu when a snapshot is the point. A timeout the operator sets in the menu file is left alone by updates.
 
-## CHG-005 — Readable paths
+# Audio
 
-> `05` · Applied · 2026-07-08 · Low · needs 002
+Playback prefers the headset the operator is wearing, then the laptop. Music and the browser run through a Rock EQ that follows whichever device won.
 
-| | |
-|---|---|
-| **Objective** | Tide pwd segment readable (black text on blue). |
-| **Challenge** | Rainbow stock `brwhite`/`white` on blue is unreadable. |
-| **Paths** | fish universals (Tide) |
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-07-19 | Dock | Bluetooth, USB, and the laptop all wanted to be the default | A fixed rank: headset, then the USB-C headset, then the built-in speakers, camera last. The EQ is the default sink and is reattached when the hardware changes. |
+| 2026-08-05 | Dock | The headphone jack and the speakers are the same card, and the jack had been labeled as the speakers | The map names the jack and the speakers separately. |
+| 2026-09-09 | Dock | Unplugging USB-C landed on the jack, because the jack still looked present at the desk | The jack stays mapped and leaves the automatic list. Unplug USB-C and the laptop speakers take over. |
+| 2026-11-09 | Field | This laptop has a plain analog device. The dock map names cards this laptop does not have | The same rank. When the dock card is absent, playback uses the analog output. A status print says the jack is absent. |
 
-**Execute**
+# Screenshots
 
-```bash
-fish -c 'set -U tide_pwd_color_anchors black
-         set -U tide_pwd_color_dirs black
-         set -U tide_pwd_color_truncated_dirs black'
-# tide reload if already open
-```
+Shots are easy to take, and they live on the project volume once that volume exists, so they do not fill the OS disk.
 
-**Backout**
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-07-29 | Dock | Shots were landing on the OS volume. The desk keyboard has no Print key | `~/Pictures/Screenshots` became a symlink onto the data volume. Super+Shift+S takes the shot. |
+| 2026-11-09 | Field | No data volume yet. Super+Shift+S was already in use. Omarchy 4.5 reads a new screenshot variable and still honors the old one | Both variables pointed at `~/Pictures/Screenshots`. Print Screen already captured. The existing chord was left as it was. |
+| 2026-11-10 | Field | The data volume came up | Shots moved with it. The home path is a symlink onto the project tree. |
 
-```bash
-fish -c 'set -U tide_pwd_color_anchors brwhite
-         set -U tide_pwd_color_dirs brwhite
-         set -U tide_pwd_color_truncated_dirs white'
-```
+# Work browser
 
----
+The work browser is an extra. Chrome stays the default.
 
-## CHG-006 — Land in Projects
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-08-14 | Dock | The vendor ships a Debian package. Omarchy is Arch | A pacman package wrapped around that archive, Wayland flags, and no claim on the default browser. |
+| 2026-08-14 | Dock | The package had no desk chord, and the Chrome chord had to stay | A launch-or-focus chord and an incognito chord that do not take Chrome's key. |
+| 2026-11-09 | Field | The package is not in this kit, and 4.5 binds keys in Lua | Skipped cleanly. The outcome returns when the package is in the kit. |
 
-> `06` · Applied · 2026-07-08 · Low · needs 003 + 004
+# USB power
 
-| | |
-|---|---|
-| **Objective** | New Alacritty sessions start in `/data/Development/Projects`. |
-| **Challenge** | After 004, terminals still open in `$HOME`. |
-| **Paths** | `~/.config/alacritty/alacritty.toml` |
+A hub that loses power takes the headset and the camera with it. Each hub has its own supply. Hubs are not daisy-chained for power.
 
-**Execute**
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-09-08 | Dock | A new hub reset every couple of seconds for about twenty minutes. No disk errors. Two new hubs were drawing from the bus, and another hub was chained behind both | Each hub got its own supply. The chained hub came off that run. The resets stopped. |
+| 2026-09-09 | Dock | One device on the chain still needed more power than the hub should give, and an unused network port on a hub was an easy mistake | The standing map names what belongs on the hub. The heavy device waits for its own supply. |
+| 2026-11-09 | Field | This laptop does not carry that dock | Skipped. The map stays with the dock generation. |
 
-```bash
-cp ~/.config/alacritty/alacritty.toml ~/.config/alacritty/alacritty.toml.bak.chg006.$(date +%Y%m%d-%H%M%S)
-# in shell args -c string, before exec fish -l:
-# … && fastfetch; cd /data/Development/Projects; exec fish -l
-```
+# Generations
 
-**Backout**
+A generation is one machine, or one image, brought up against the tracker, plus the process changes that came out of the work.
 
-```bash
-# remove: cd /data/Development/Projects;
-cp ~/.config/alacritty/alacritty.toml.bak.chg006.YYYYMMDD-HHMMSS ~/.config/alacritty/alacritty.toml
-```
-
----
-
-# III · Disk Partitioning
-
-| CHG | Status |
-|-----|--------|
-| 004 | Applied · **High** · OS on `nvme0n1p2`, Projects on `/data` |
-| 014 | Applied · **High** · Snapper pre-pacman, keep 2; 83te OS volume recovered |
-
----
-
-## CHG-004 — Projects on their own disk
-
-> `04` · Applied · 2026-07-06 `p3oos` / 2026-07-09 `83te` · **High**
-
-| | |
-|---|---|
-| **Objective** | OS on LUKS+btrfs; Projects on second LUKS+XFS at `/data`; symlink `~/Development/Projects`. |
-| **Challenge** | Omarchy installer has no separate encrypted data volume; Projects must outlive OS reinstall. |
-| **Paths** | GPT/LUKS on `nvme0n1` · `/etc/crypttab` · `/etc/fstab` · `scripts/chg004-*` · real tree `/data/Development/Projects` |
-
-**Layout (reference)**
-
-```
-# p3oos: p2 ~350G btrfs / · p3 ~580G XFS /data
-# 83te:  p2 200G btrfs OS · p3 ~752G XFS /data
-# 83te data LUKS a830ae16-1d9c-4411-9892-f8e8de2ebd3c
-# 83te data XFS  5e7b8d54-0931-475b-8163-1b057921d781
-/data/Development/Projects/   ← real
-~/Development/Projects        → symlink
-```
-
-**Execute** (root · live Omarchy · read scripts first)
-
-```bash
-cd /data/Development/Projects/socfoundry/omarchy
-sudo bash scripts/chg004-partition.sh
-sudo bash scripts/chg004-postboot.sh
-# reboot
-sudo fish scripts/chg004-verify.fish
-lsblk -f /dev/nvme0n1
-readlink -f ~/Development/Projects   # → /data/Development/Projects
-```
-
-**Backout**
-
-- **High risk.** Prefer pre-change safety copies before deleting them.
-- Full reverse = restore GPT/LUKS from backup media or reinstall — not a one-liner.
-- Soft (migration only wrong): keep p3; fix symlink/mount. **Do not wipe p3** until backups verified elsewhere.
-
----
-
-## CHG-014 — Snapper: pre-pacman only, keep last 2
-
-> `14` · Applied · 2026-08-27 · `83te` · **High** · [docs/chg014-snapper-pacman-policy.md](docs/chg014-snapper-pacman-policy.md)  
-> Same disk as [004](#chg-004--projects-on-their-own-disk) (`nvme0n1p2` 200 GiB btrfs root).
-
-| | |
-|---|---|
-| **Objective** | Snapshot root only immediately before pacman; retain the last 2. Stop hourly timeline snapshots from filling the 200 GiB OS volume. |
-| **Challenge** | Native Omarchy intent is `NUMBER_LIMIT=5` + `TIMELINE_CREATE=no`, but 83te ran stock Snapper (`TIMELINE_CREATE=yes`, `NUMBER_LIMIT=50`) with `snapper-timeline.timer` on and `snapper-cleanup.timer` off. ~882 snapshots, disk at 100% (681 MiB free). `du` cannot see snapshot exclusive COW (~70 GiB). Quotas disabled so `SPACE_LIMIT` is a no-op. `snapper delete` of a batch aborts if any ID is missing. |
-| **Paths** | `/etc/snapper/configs/root` · `/etc/pacman.d/hooks/05-snapper-pacman-pre.hook` · `/usr/local/sbin/snapper-pacman-pre` · `~/.local/bin/omarchy-snapshot` · `~/.config/omarchy/hooks/post-update.d/snapper-pacman-policy` · `docs/chg014-snapper-pacman-policy.md` · `scripts/chg014-*` |
-
-**Execute**
-
-```bash
-cd /data/Development/Projects/socfoundry/omarchy
-bash scripts/chg014-apply.sh
-sudo bash scripts/chg014-prune.sh          # keep last 2; skip if already pruned
-fish scripts/chg014-verify.fish
-# df -h /  should be well under 100%
-# sudo snapper --no-dbus -c root list  → current + 2
-```
-
-**Backout**
-
-```bash
-bash scripts/chg014-backout.sh
-# restores NUMBER_LIMIT=5 / no timeline / removes hook
-# does not undelete snapshots
-```
-
----
-
-# IV · Audio Precedence Config
-
-| CHG | Status |
-|-----|--------|
-| 007 | Applied |
-| 010 | Applied · sof map · AUX pick superseded by 017 |
-| 017 | Applied · three-tier failover |
-
----
-
-## CHG-007 — Audio Precedence Config
-
-> `07` · Applied · 2026-07-19 · `83te` · Med · `docs/chg007-audio-precedence-qos.md`
-
-| | |
-|---|---|
-| **Objective** | Device failover order + always-on Rock EQ for Spotify/Chrome. |
-| **Challenge** | BT/USB/built-in fight for default; need stable rank + EQ re-glue. |
-| **Paths** | `config/wireplumber/` · `config/audio-eq/` · `bin/audio-precedence-*` · `scripts/chg007-*` |
-
-**Order (007 / 017 live)** P30i → Lenovo USB-C → built-in → camera  
-**(010)** sof map + AUX in chain — **017** dropped AUX from automatic failover
-
-**Execute**
-
-```bash
-cd /data/Development/Projects/socfoundry/omarchy
-bash scripts/chg007-apply.sh
-fish scripts/chg007-verify.fish
-~/.local/bin/audio-precedence-follow --print
-# binds: SUPER+CTRL+E cycle EQ · SUPER+CTRL+SHIFT+E status
-```
-
-**Backout**
-
-```bash
-bash scripts/chg007-backout.sh          # full
-bash scripts/chg007-backout.sh --soft   # EQ + watcher only
-```
-
----
-
-## CHG-010 — AUX desk headset in the chain
-
-> `10` · Applied · 2026-08-05 / 2026-09-09 · `83te` · Med · `docs/chg010-aux-desk-headset.md`  
-> **Live failover is [017](#chg-017--three-tier-audio-failover).** 010’s sof map remains; do not re-run `chg010-apply.sh`.
-
-| | |
-|---|---|
-| **Objective** | Fix sof pro-audio map (`pro-2`/`pro-10` = speakers/dmic). Originally also ranked AUX after Lenovo. |
-| **Challenge** | AUX is same sof card as speakers: `pro-output-0` = Jack Out (not speakers); `pro-output-2` = speakers; `pro-input-1` = jack mic; `pro-input-10` = dmic. |
-| **Paths** | `config/wireplumber/.../50-device-precedence.conf` · `bin/audio-precedence-follow` · `scripts/chg010-*` |
-
-**Map (still live)** `pro-0/1` jack · `pro-2/10` laptop  
-**Pick order** 010 put AUX at 1000 — **017 disabled jack nodes** (P30i → Lenovo → built-in)
-
-**Execute**
-
-```bash
-# Do not apply 010 now — it would restore AUX failover.
-# Sof map + three-tier pick: scripts/chg017-apply.sh
-fish scripts/chg017-verify.fish
-```
-
-**Backout**
-
-```bash
-bash scripts/chg007-backout.sh          # prefers *.bak.chg010.* then chg007
-bash scripts/chg007-backout.sh --soft
-```
-
----
-
-## CHG-017 — Three-tier audio failover
-
-> `17` · Applied · 2026-09-09 · `83te` · Med · [docs/chg017-three-tier-audio-failover.md](docs/chg017-three-tier-audio-failover.md)
-
-| | |
-|---|---|
-| **Objective** | Failover is P30i → Lenovo USB-C → built-in speakers/dmic. Unplug USB-C → laptop, not 3.5mm AUX. |
-| **Challenge** | CHG-010 kept the correct sof map but ranked AUX (jack) above speakers. Jack sense is often on at the desk, so USB-C unplug landed on AUX. |
-| **Paths** | `config/wireplumber/.../50-device-precedence.conf` · `bin/audio-precedence-follow` · `scripts/chg017-*` |
-
-**Execute**
-
-```bash
-cd /data/Development/Projects/socfoundry/omarchy
-bash scripts/chg017-apply.sh
-fish scripts/chg017-verify.fish
-~/.local/bin/audio-precedence-follow --print
-# wpctl status → Built-in Speakers, no AUX Headset
-```
-
-**Backout**
-
-```bash
-# restore pre-017 WP drop-ins:
-#   ~/.config/wireplumber/wireplumber.conf.d.bak.chg017.<ts>
-systemctl --user restart wireplumber.service
-```
-
----
-
-# V · Screenshot Config
-
-| CHG | Status |
-|-----|--------|
-| 008 | Applied |
-
----
-
-## CHG-008 — Screenshot Config
-
-> `08` · Applied · 2026-07-29 · `83te` · Low
-
-| | |
-|---|---|
-| **Objective** | Screenshots on XFS `/data`, not btrfs root; Super+Shift+S region (Keychron Q4). |
-| **Challenge** | Stock writes under `~/Pictures` on OS volume; board has no Print key. |
-| **Paths** | `/data/Development/Projects/socfoundry/ss` · fish `OMARCHY_SCREENSHOT_DIR` · Hyprland `env` + bind |
-
-**Execute**
-
-```bash
-sudo mkdir -p /data/Development/Projects/socfoundry/ss
-sudo chown -R "$USER:$USER" /data/Development/Projects/socfoundry/ss
-mkdir -p ~/Pictures
-rm -rf ~/Pictures/Screenshots
-ln -s /data/Development/Projects/socfoundry/ss ~/Pictures/Screenshots
-
-# fish — use -Ux / -gx once (not -Ua; appends duplicates)
-grep -q OMARCHY_SCREENSHOT_DIR ~/.config/fish/config.fish || \
-  echo 'set -gx OMARCHY_SCREENSHOT_DIR "/data/Development/Projects/socfoundry/ss"' >> ~/.config/fish/config.fish
-fish -c 'set -eU OMARCHY_SCREENSHOT_DIR; set -Ux OMARCHY_SCREENSHOT_DIR /data/Development/Projects/socfoundry/ss'
-
-# Hyprland (personal block — not both with uncommented stock bind)
-# env = OMARCHY_SCREENSHOT_DIR,/data/Development/Projects/socfoundry/ss
-# bind = SUPER SHIFT, S, exec, omarchy-capture-screenshot
-hyprctl reload && hyprctl configerrors
-echo $OMARCHY_SCREENSHOT_DIR
-findmnt -T /data/Development/Projects/socfoundry/ss
-```
-
-**Backout**
-
-```bash
-# remove Hyprland env + SUPER SHIFT S; hyprctl reload
-# remove set -gx line from config.fish
-fish -c 'set -eU OMARCHY_SCREENSHOT_DIR'
-rm -f ~/Pictures/Screenshots
-# files under …/ss left in place
-```
-
----
-
-# VI · Apps
-
-| CHG | Status |
-|-----|--------|
-| 012 | Applied · package |
-| 013 | Applied · desk setup |
-
----
-
-# VII · USB / Peripherals
-
-| CHG | Status |
-|-----|--------|
-| 016 | **Recovered** · incident |
-| 018 | Applied · as-built wiring + PSU |
-
----
-
-## CHG-012 — Island Enterprise Browser
-
-> `12` · Applied · 2026-08-14 · `83te` · Med · `docs/chg012-island-enterprise-browser.md`
-
-| | |
-|---|---|
-| **Objective** | Install Island Enterprise Browser from the vendor `.deb` as a pacman-tracked package; Wayland flags; Hyprland chromium tag. Leave the default browser alone. |
-| **Challenge** | Island ships Debian only. Omarchy is Arch — do not use `dpkg`/`apt`. Skip apt repo, alternatives, AppArmor. |
-| **Paths** | `island-browser-stable_150.1.96.29-1_amd64.deb` · `pkg/island-browser-stable/` · `scripts/chg012-*` · `~/.config/island-browser-flags.conf` · `~/.config/hypr/hyprland.conf` |
-
-**Execute**
-
-```bash
-cd /data/Development/Projects/socfoundry/omarchy
-bash scripts/chg012-apply.sh
-fish scripts/chg012-verify.fish
-# expect: pacman -Q island-browser-stable · island-browser-stable --version
-# Walker: Island · Super+Shift+B stays Chrome (xdg default)
-```
-
-**Backout**
-
-```bash
-bash scripts/chg012-backout.sh
-# restores hypr + flags; sudo pacman -Rns island-browser-stable
-# ~/.config/island profile is left in place
-```
-
----
-
-## CHG-013 — Island setup
-
-> `13` · Applied · 2026-08-14 · `83te` · Low · `docs/chg013-island-setup.md`  
-> Needs [012](#chg-012--island-enterprise-browser).
-
-| | |
-|---|---|
-| **Objective** | Desk setup for Island as the work browser: launch-or-focus + incognito binds. Leave Chrome as xdg default. |
-| **Challenge** | 012 only installed the package. Need a chord that does not steal Super+Shift+B. Live class is `island-browser`. Enrollment stays operator-only. |
-| **Paths** | `~/.config/hypr/bindings.conf` · `scripts/chg013-*` |
-
-**Execute**
-
-```bash
-cd /data/Development/Projects/socfoundry/omarchy
-bash scripts/chg013-apply.sh
-fish scripts/chg013-verify.fish
-# Super+Shift+I → Island · Super+Shift+Alt+I incognito
-# Super+Shift+B still Chrome
-```
-
-**Backout**
-
-```bash
-bash scripts/chg013-backout.sh
-# package + ~/.config/island stay (use CHG-012 backout to remove the app)
-```
-
----
-
-## CHG-016 — USB-C hub power-cycle
-
-> `16` · **Recovered** · 2026-09-08 · `83te` · Low · [docs/chg016-usbc-hub-power-cycle.md](docs/chg016-usbc-hub-power-cycle.md)
-
-| | |
-|---|---|
-| **Objective** | Find why the new USB-C hub (camera, DVD, Lenovo USB-C headset, Xbox pad) is power-cycling. |
-| **Challenge** | Anker USB-C hub was daisy-chained downstream of **both** Ugreen and the new Genesys hub; new/Ugreen were not on dedicated PSUs. USB `EPROTO` (`err = -71`) + nested-hub power-cycle ~every 2 s, 19:01–19:22. No block I/O. Dedicated PSU on both hubs stopped the storm. |
-| **Paths** | `usb 2-4` / `usb 3-2` (PCH xHCI `00:14.0`) · Type-C `port1` · `docs/chg016-usbc-hub-power-cycle.md` |
-
-**Execute**
-
-```bash
-# Done by operator: dedicated PSU on Ugreen + new hub; Anker USB-C hub
-# pulled off that daisy-chain. Storm last power-cycle 19:22:18.
-journalctl -k --since '19:22:21' | grep -E 'err = -71|power cycle|I/O error'
-# as-built / standing policy: CHG-018
-fish scripts/chg018-verify.fish
-```
-
-**Backout**
-
-```bash
-# Unplug the new hub. Anker dock / Keychron / trackball are on other buses.
-```
-
----
-
-## CHG-018 — Second USB-C hub as-built
-
-> `18` · Applied · 2026-09-09 · `83te` · Low · [docs/chg018-second-usbc-hub-as-built.md](docs/chg018-second-usbc-hub-as-built.md)  
-> Incident: [016](#chg-016--usbc-hub-power-cycle).
-
-| | |
-|---|---|
-| **Objective** | Standing wiring + power for the second (Genesys) USB-C hub: camera, Lenovo USB-C headset, Xbox pad. Own PSU. No extra hub daisy-chain. |
-| **Challenge** | Bus-power + Anker USB-C downstream of Ugreen **and** this hub caused 016’s reset storm. DVD still needs a dedicated strip. Ugreen RJ-45 is unused. |
-| **Paths** | Yoga Type-C port1 `usb 2-4`/`3-2` · `docs/chg018-second-usbc-hub-as-built.md` · `scripts/chg018-verify.fish` |
-
-**Execute**
-
-```bash
-# Hardware: dedicated PSU on Ugreen + Genesys hub.
-# Loads on Genesys: camera 3-2.3 · Xbox 3-2.4.1 · Lenovo IEM 3-2.4.3
-# Not on this hub: Pioneer DVD (until custom strip)
-cd /data/Development/Projects/socfoundry/omarchy
-fish scripts/chg018-verify.fish
-```
-
-**Backout**
-
-```bash
-# Unplug the Genesys hub from Yoga port1. Anker dock stays.
-```
-
----
+| When | Where | What changed | How it was finished |
+|------|-------|--------------|---------------------|
+| 2026-11-10 | Field | Bring an undocked 4.5 laptop up to the tracker without copying the dock | Fish, Tide, the terminal wrapper, screenshots, audio rank, and the snapshot cap. Desk monitors, dock audio map, dock USB, and the work browser were left for the machines that have that hardware. |
+| 2026-11-10 | Repo | The repo has to be the control an agent can run, not a diary of one laptop | `scripts/chg020-status.fish` is the gate. Outcomes stay. Dated procedures stay under them. Release notes are read before a replay. |
+| 2026-11-10 | Repo | The catalog moved in front of the dated procedures | This file. The tracker is first. Each outcome carries its own dated table. The next image starts from the results that must hold. |
+| 2026-11-10 | Field | The project volume, on a disk the July sizes do not describe | [Projects volume](#projects-volume). |
 
 ## Roadmap
 
-| ID | Topic |
-|----|--------|
-| **015** | Syncthing mesh `/data/Development/Projects` (a8oos · p3oos · 83te) |
-| **019+** | Keybinds · workspaces · themes · waybar |
+| ID | Next |
+|----|------|
+| **015** | Join project sync after a boot has shown `/data` mounting on its own. The live mesh, not the July roster, is the source. |
+| **Boot acceptance** | Reboot the field laptop when the operator wants the proof. The live session already has the volume, the symlink, and a clean verify. |
+| **Next image** | A generation bullet, the status script, then rows for whatever that Omarchy release moved. |
 
----
-
-<sub>Last applied **018** · audio live **017** · verbose history: `README.md.bak.verbose.*`</sub>
+<sub>Tracker current through the field generation · 2026-11-10 · volume mounted · next free change **023**</sub>

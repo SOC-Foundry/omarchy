@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# CHG-003 / CHG-006 outcome, path from CHG-019 / CHG-020.
+# Source of truth for Super+Return. ~/.local/bin/omarchy-term-login links here.
+#
+# One-shot system snapshot, then an interactive fish login.
+# A fresh terminal (cwd $HOME) lands in Projects. An inherited
+# project directory from omarchy-launch-terminal is left alone.
+# /data is preferred once the encrypted data volume exists.
+set -u
+
+uname -a
+ip -4 -br addr || true
+echo fish
+lsblk -f
+command -v fastfetch >/dev/null && fastfetch
+
+if [[ "${PWD:-}" == "${HOME}" || "${PWD:-}" == "/" ]]; then
+  if [[ -d /data/Development/Projects ]]; then
+    cd /data/Development/Projects
+  elif [[ -d "${HOME}/Development/Projects" ]]; then
+    cd "${HOME}/Development/Projects"
+  fi
+fi
+
+if [[ -x /usr/bin/fish ]]; then
+  exec /usr/bin/fish -l
+fi
+exec /usr/bin/bash -l

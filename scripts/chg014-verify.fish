@@ -57,12 +57,16 @@ else
     fail 'Limine MAX_SNAPSHOT_ENTRIES is not 2'
 end
 
-set limine_snaps (grep -oE 'snapshots/[0-9]+' /boot/limine.conf | sort -u)
-set nlimine (count $limine_snaps)
-if test $nlimine -le 2
-    ok "Limine snapshot entries: $nlimine ($limine_snaps)"
+if test -r /boot/limine.conf
+    set limine_snaps (string match -r -a 'snapshots/[0-9]+' </boot/limine.conf | sort -u)
+    set nlimine (count $limine_snaps)
+    if test $nlimine -le 2
+        ok "Limine snapshot entries: $nlimine ($limine_snaps)"
+    else
+        fail "Limine has $nlimine snapshot entries (want ≤2): $limine_snaps"
+    end
 else
-    fail "Limine has $nlimine snapshot entries (want ≤2): $limine_snaps"
+    echo '  SKIP  Limine snapshot entries: /boot/limine.conf is not readable'
 end
 
 echo

@@ -2,8 +2,9 @@
 # CHG-004 post steps: crypttab, fstab, limine UKI, migrate Projects to /data, symlink.
 set -euo pipefail
 
-DISK=/dev/nvme0n1
-P3=${DISK}p3
+# CHG-022 may pass the live disk. Unset, these stay the 83te devices.
+DISK=${ROOT_DISK:-/dev/nvme0n1}
+P3=${DATA_PART:-${DISK}p3}
 MAPPER_DATA=data
 PROJECTS_SRC="${HOME_OVERRIDE:-/home/kthompson}/Development/Projects"
 PROJECTS_DST="/data/Development/Projects"

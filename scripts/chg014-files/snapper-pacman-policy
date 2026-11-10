@@ -23,6 +23,11 @@ sudo systemctl disable --now snapper-timeline.timer >/dev/null 2>&1 || true
 sudo systemctl disable --now snapper-boot.timer >/dev/null 2>&1 || true
 sudo systemctl enable --now snapper-cleanup.timer >/dev/null 2>&1 || true
 
-if [[ -f /etc/default/limine ]] && grep -q '^MAX_SNAPSHOT_ENTRIES=' /etc/default/limine; then
-  sudo sed -i 's/^MAX_SNAPSHOT_ENTRIES=.*/MAX_SNAPSHOT_ENTRIES=2/' /etc/default/limine
+# /etc/default/limine overrides /etc/limine-entry-tool.d (Omarchy 4.5 ships 6).
+if [[ -f /etc/default/limine ]]; then
+  if grep -q '^MAX_SNAPSHOT_ENTRIES=' /etc/default/limine; then
+    sudo sed -i 's/^MAX_SNAPSHOT_ENTRIES=.*/MAX_SNAPSHOT_ENTRIES=2/' /etc/default/limine
+  else
+    printf '\n# CHG-014 — boot menu keeps the last 2 snapshots.\nMAX_SNAPSHOT_ENTRIES=2\n' | sudo tee -a /etc/default/limine >/dev/null
+  fi
 fi

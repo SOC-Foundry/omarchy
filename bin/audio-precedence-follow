@@ -31,7 +31,25 @@ source_exists() {
 }
 
 # True when 3.5mm Headphone Jack reports plugged (AUX headset at desk).
-# If amixer/card missing, assume present so desk always-on gear still ranks.
+# A missing card is not "plugged". CHG-017 does not use this for sink choice.
+# --print uses jack_sense so a Latitude without sof-soundwire says "absent".
+jack_sense() {
+  local which="$1" out
+  out=$(amixer -c "$SOF_CARD" cget name="$which" 2>/dev/null || true)
+  if [[ -z "$out" ]]; then
+    out=$(amixer -c 2 cget name="$which" 2>/dev/null || true)
+  fi
+  if [[ -z "$out" ]]; then
+    echo absent
+    return
+  fi
+  if printf '%s' "$out" | rg -q 'values=on'; then
+    echo on
+  else
+    echo off
+  fi
+}
+
 aux_jack_plugged() {
   local out
   out=$(amixer -c "$SOF_CARD" cget name='Headphone Jack' 2>/dev/null || true)
@@ -240,9 +258,9 @@ main() {
   fi
 
   if [[ "${1:-}" == "--print" || "${1:-}" == "status" ]]; then
-    local jack="unknown" micjack="unknown"
-    if aux_jack_plugged; then jack=on; else jack=off; fi
-    if aux_mic_jack_plugged; then micjack=on; else micjack=off; fi
+    local jack micjack
+    jack=$(jack_sense 'Headphone Jack')
+    micjack=$(jack_sense 'Headset Mic Jack')
     echo "hardware_sink=${hw:-none}"
     echo "default_sink=$(pactl get-default-sink 2>/dev/null || echo none)"
     echo "default_source=$(pactl get-default-source 2>/dev/null || echo none)"

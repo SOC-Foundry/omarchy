@@ -68,9 +68,15 @@ sudo systemctl disable --now snapper-timeline.timer
 sudo systemctl disable --now snapper-boot.timer || true
 sudo systemctl enable --now snapper-cleanup.timer
 
+# Omarchy 4.5 keeps the boot-menu cap in limine-entry-tool drop-ins (ships 6).
+# /etc/default/limine overrides those, and older hosts already have the key.
 if [[ -f /etc/default/limine ]]; then
   backup /etc/default/limine
-  sudo sed -i 's/^MAX_SNAPSHOT_ENTRIES=.*/MAX_SNAPSHOT_ENTRIES=2/' /etc/default/limine
+  if grep -q '^MAX_SNAPSHOT_ENTRIES=' /etc/default/limine; then
+    sudo sed -i 's/^MAX_SNAPSHOT_ENTRIES=.*/MAX_SNAPSHOT_ENTRIES=2/' /etc/default/limine
+  else
+    printf '\n# CHG-014 — boot menu keeps the last 2 snapshots.\nMAX_SNAPSHOT_ENTRIES=2\n' | sudo tee -a /etc/default/limine >/dev/null
+  fi
 fi
 
 log "PATH wrapper so omarchy-update does not consume both snapshot slots"
