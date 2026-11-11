@@ -227,6 +227,72 @@ else
 end
 
 echo
+echo "--- project sync ---"
+if command -q syncthing
+    set -l ver (syncthing --version 2>/dev/null | string match -r 'v[0-9.]+')
+    if string match -q 'v1.30.*' -- $ver
+        ok "syncthing $ver"
+    else if string match -q 'v2*' -- $ver
+        bad "syncthing $ver (the mesh is pinned at 1.30)"
+    else
+        gap "syncthing $ver is not the pinned 1.30"
+    end
+else
+    gap "syncthing is not installed (want 1.30 from the archive, not pacman -S)"
+end
+if string match -qr '^IgnorePkg[[:space:]]*=.*[[:space:]]syncthing([[:space:]]|$)' </etc/pacman.conf
+    ok "pacman pins syncthing"
+else
+    gap "syncthing is not pinned in /etc/pacman.conf"
+end
+set -l st_cfg ~/.local/state/syncthing/config.xml
+set -l nzxt EOWVR5T-UAVTTCQ-SIK34SE-VL22DZU-CZXAQXA-BPHBDGJ-OL6KO34-7G7I7A6
+set -l te WWZDMOF-AZ6UYWA-OI6NVWN-SD7HL25-AE442FI-JOHNBVF-ACGN3MS-COXESQ5
+if test -f $st_cfg
+    if string match -qr 'id="projects"' <$st_cfg
+        and string match -qr 'path="/data/Development/Projects"' <$st_cfg
+        and string match -qr $te <$st_cfg
+        ok "projects folder is /data/Development/Projects shared with 83te"
+    else
+        gap "syncthing config has no projects folder shared with 83te"
+    end
+    if test (systemctl --user is-active syncthing.service) = active
+        set -l link (python3 -c '
+import json, urllib.request, xml.etree.ElementTree as ET
+root = ET.parse("/home/kthompson/.local/state/syncthing/config.xml").getroot()
+key = next(el.text for el in root.iter("apikey"))
+req = urllib.request.Request("http://127.0.0.1:8384/rest/system/connections")
+req.add_header("X-API-Key", key)
+try:
+    data = json.load(urllib.request.urlopen(req, timeout=3))
+except Exception:
+    print("down down")
+    raise SystemExit
+con = data.get("connections", {})
+def up(device):
+    return "up" if (con.get(device) or {}).get("connected") else "down"
+print(up("WWZDMOF-AZ6UYWA-OI6NVWN-SD7HL25-AE442FI-JOHNBVF-ACGN3MS-COXESQ5"), up("EOWVR5T-UAVTTCQ-SIK34SE-VL22DZU-CZXAQXA-BPHBDGJ-OL6KO34-7G7I7A6"))
+')
+        set -l te_up (string split ' ' -- $link)[1]
+        set -l nz_up (string split ' ' -- $link)[2]
+        if test "$te_up" = up
+            ok "83te is connected"
+        else
+            gap "83te is not connected (172.31.255.153:22000)"
+        end
+        if test "$nz_up" = up
+            ok "nzxtcos is connected"
+        else
+            gap "nzxtcos is not connected (172.31.255.135:22000)"
+        end
+    else
+        gap "syncthing service is not running"
+    end
+else
+    gap "syncthing is not joined yet"
+end
+
+echo
 echo "--- optional, host-specific ---"
 if command -q island-browser-stable
     ok "Island browser is installed"

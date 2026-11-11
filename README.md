@@ -57,7 +57,7 @@ Checked on the field laptop the morning of 2026-11-10, before the volume: 20 OK,
 | [Shell](#shell) | fish + Tide v6, black path text | Login shell is fish |
 | [Terminal startup](#terminal-startup) | A one-shot snapshot, then fish, landing in Projects | Repo script, Foot on 4.5 |
 | [Projects volume](#projects-volume) | Encrypted XFS at `/data`, home path is a symlink | Field volume is mounted. About 287 GiB. Next boot confirms the unlock |
-| [Project sync](#project-sync) | One folder, LAN, no server | Reviewed and held until the project path is `/data` |
+| [Project sync](#project-sync) | One folder, LAN, no server | In sync with 83te and nzxtcos. 45 GB, idle |
 | [Snapshots](#snapshots) | One snapshot before pacman, keep 2, boot menu matches | Holds, including the 4.5 menu cap |
 | [Audio](#audio) | Headset, then the laptop, through a Rock EQ | Field falls through to analog. The dock map stays on the dock |
 | [Screenshots](#screenshots) | On the data volume once it exists | Field shots now follow `/data` |
@@ -91,9 +91,10 @@ Checked on the field laptop the morning of 2026-11-10, before the volume: 20 OK,
 | 2026-11-10 | 019 | Field bring-up | Field | Applied | Med |
 | 2026-11-10 | 020 | Provisioning control | Field | Applied | Low |
 | 2026-11-10 | 021 | Outcome catalog | repo | Applied | Low |
+| 2026-11-10 | 015 | Project sync | Field | In sync with 83te and nzxtcos | Low |
 | 2026-11-10 | 022 | Data volume from this disk | Field | Applied on the live session | **High** |
 
-015 is reserved for project sync. It is not skipped. It waits until the project path is the data volume and a boot has confirmed the mount.
+015 is the project-sync join. This laptop is in sync with 83te at `172.31.255.153` and nzxtcos at `172.31.255.135`. The folder is idle.
 
 ---
 
@@ -191,11 +192,70 @@ Dated procedures: `scripts/chg004-*` for the first generation, `scripts/chg022-d
 
 # Project sync
 
-The project tree is the same work on every machine that has joined. Sync is LAN-only. There is no central server.
+The project tree is the same work on every machine that has joined. Sync is LAN-only. There is no central server. The package stays at 1.30.0. The folder id is `projects`, send-and-receive. Each machine keeps its own path for that id.
 
-The July plan and the live configuration are both kept. The live file is the one a new machine joins. On 2026-11-10 the dock was reviewed over an administrative login. The package is installed. The service is stopped, which is the intended quiet state. The project folder points at `/data/Development/Projects` and is shared with the active peer. A retired machine is still in the device list and is not on that folder. The field laptop was not added.
+On 2026-11-11 the field laptop is in sync with both live peers. 83te is `172.31.255.153`. nzxtcos is `172.31.255.135`. Both dial this laptop on port 22000. The folder is idle: 45.12 GB, 238763 files, nothing left to pull. This laptop and 83te store it at `/data/Development/Projects`. nzxtcos stores it at `/home/kthompson/Development/Projects`. Relays and NAT are off. The GUI on this laptop is `http://127.0.0.1:8384` with no account.
 
-That sequencing is the outcome. The share path has to be the data volume, and a boot has to prove the mount, before a second machine joins. 015 stays reserved for that join.
+The July plan stays in the pool directory as the story of the first mesh. A new machine joins the live peers. `pool-setup-v4.fish` still names the July roster, so this join left that script unrun.
+
+A problem here was a chance to write down the step the next image actually needs.
+
+| When | Where | Opportunity | Win |
+|------|-------|-------------|-----|
+| 2026-07-05 | Desk · Dock | One folder, every joined machine, no server | The pool script. Version pinned at 1.30.0 from the archive. |
+| 2026-11-10 | Field | This Omarchy offers Syncthing 2.x. The mesh is one generation behind that, on purpose | Installed 1.30.0 from the archive and pinned `IgnorePkg = syncthing` inside `[options]`. The pin is how the next update keeps the mesh. |
+| 2026-11-10 | Field | The firewall denies inbound, and this laptop uses two LAN slices | Opened `22000/tcp` from `172.31.255.128/26` and `172.31.255.192/26`. |
+| 2026-11-10 | Field | The dock already had 1.30.0, and the user service was stopped. The July address was a different network | On this VLAN the dock is `172.31.255.153`. Starting the user service and adding this laptop to `projects` brought the link up. The firewall there already allowed the port. |
+| 2026-11-10 | Field | nzxtcos answered ping and reset port 22000. An allow rule was waiting on a listener | The reset meant the package was absent, so the user unit was absent. 1.30.0 went on. `systemctl --user enable --now syncthing.service` is the start. The package ships that unit for the user, and the system unit is the template `syncthing@.service`. |
+| 2026-11-10 | Field | TLS to nzxtcos succeeded, and the far side closed the session | The certificate was the right device. The close was the introduction. Once this laptop was accepted, nzxtcos dialed back and the index moved. |
+| 2026-11-10 | Field | The same folder id already had a home on each machine | nzxtcos keeps `/home/kthompson/Development/Projects`. This laptop and 83te keep `/data/Development/Projects`. |
+| 2026-11-11 | Field | Three checkouts of one tree had to become one folder | The folder reached idle. Global and local are both 45.12 GB. Errors 0. |
+| 2026-11-11 | Field | A shared folder that contains `.git` will keep a copy of every checkout's git files | The join wrote `.sync-conflict` siblings under `socfoundry/omarchy`, including the README and files inside `.git`. The working tree is intact. The next pass can keep git metadata local to each machine. |
+
+## CHG-015 — Project sync
+
+> `15` · In sync · 2026-11-10 · `o7400` · Low
+
+| | |
+|---|---|
+| **Objective** | The project tree is the same work on every joined machine. LAN only. No central server. The package stays 1.30.0. |
+| **Challenge** | Each block in the join named the next useful step. The repo package is 2.x, so the mesh installs 1.30.0 from the archive and pins it. The July script still has July's addresses, one subnet, and a single folder path, so the live peers are added by hand. 83te's service was stopped and its wired address on this VLAN is `.153`. nzxtcos reset 22000 until 1.30.0 was installed and the user service was started, then closed a finished TLS session until this device was accepted. The folder id is shared and the path belongs to the machine. Sharing `.git` writes conflict copies beside the real git files. |
+| **Paths** | `scripts/chg015-install.sh` installs, pins, and opens the firewall. It does not start the service. The join is the user service on each peer, plus this device on folder `projects`. Addresses are the live LAN IPs. Paths stay per machine. |
+
+**Execute**
+
+```bash
+bash scripts/chg015-install.sh
+```
+
+The run on this host installed `syncthing 1.30.0-1`, wrote `IgnorePkg = syncthing` into `/etc/pacman.conf` `[options]`, and allowed `22000/tcp` from `172.31.255.128/26` and `172.31.255.192/26`. Backup: `/etc/pacman.conf.bak.chg015.20261110-125820`.
+
+The user service was enabled the same day. Config backup: `~/.local/state/syncthing/config.xml.bak.chg015.20261110-130933`.
+
+| | |
+|---|---|
+| This device | `o7400`, `CDSAUWE-5QUHZQD-UM7NV62-XWOG57O-VEDBALU-JR6JNGL-IE5UPG4-ZYZH3AX` |
+| 83te | `WWZDMOF-AZ6UYWA-OI6NVWN-SD7HL25-AE442FI-JOHNBVF-ACGN3MS-COXESQ5`, `tcp://172.31.255.153:22000`, path `/data/Development/Projects` |
+| nzxtcos | `EOWVR5T-UAVTTCQ-SIK34SE-VL22DZU-CZXAQXA-BPHBDGJ-OL6KO34-7G7I7A6`, `tcp://172.31.255.135:22000`, path `/home/kthompson/Development/Projects` |
+| Folder | `projects`, send-and-receive. Idle on 2026-11-11 at 45.12 GB, 238763 files |
+| Left off this join | `a8oos`, the retired `p3cos` |
+
+83te is the dock, on the wired NIC `enp0s20f0u1u3`. Its user service was enabled and started, and this laptop was added to `projects`. 83te's config backup is `~/.local/state/syncthing/config.xml.bak.chg015.20261110-201715`. Its firewall already allowed port 22000 from `172.31.255.128/26`. The link is `tcp://172.31.255.153:22000`.
+
+nzxtcos is the MSI on this laptop's USB ethernet, about 0.3 ms away. The port reset until the 1.30.0 package and the user service were in place. The first secure sessions closed, and the following one stayed: remote name `nzxtcos`, this laptop accepted, nzxtcos dialing in. The GUI on that host completed the join. Leave `pool-setup-v4.fish` unrun on that host.
+
+On 2026-11-11 both links were up and the folder was idle, with local bytes equal to global bytes and zero errors. The merge also wrote `.sync-conflict` files under `socfoundry/omarchy` from all three device ids. Those copies sit beside the working README and inside `.git`. They are the map for the next improvement: git metadata wants to stay on the machine that owns the checkout.
+
+**Backout**
+
+```bash
+sudo pacman -Rns --noconfirm syncthing
+sudo ufw delete allow from 172.31.255.128/26 to any port 22000 proto tcp
+sudo ufw delete allow from 172.31.255.192/26 to any port 22000 proto tcp
+sudo cp -a /etc/pacman.conf.bak.chg015.20261110-125820 /etc/pacman.conf
+```
+
+The peers keep this device in their own configs until it is removed there. This laptop's config backup restores the local side.
 
 # Snapshots
 
@@ -264,8 +324,8 @@ A generation is one machine, or one image, brought up against the tracker, plus 
 
 | ID | Next |
 |----|------|
-| **015** | Join project sync after a boot has shown `/data` mounting on its own. The live mesh, not the July roster, is the source. |
-| **Boot acceptance** | Reboot the field laptop when the operator wants the proof. The live session already has the volume, the symlink, and a clean verify. |
+| **015** | The folder is idle with 83te and nzxtcos. The next pass can keep `.git` local so a join stops writing `.sync-conflict` copies. |
+| **Boot acceptance** | The 11:07 reboot mounted `/data` on its own. |
 | **Next image** | A generation bullet, the status script, then rows for whatever that Omarchy release moved. |
 
 <sub>Tracker current through the field generation · 2026-11-10 · volume mounted · next free change **023**</sub>
